@@ -85,20 +85,104 @@
           </div>
         </form>
 
-        <!-- Instructor Registration -->
-        <form id="frmInstructorRegister" class="flex flex-col items-center justify-center hidden">
-            <h1 class="text-2xl font-bold">Instructor Registration</h1>
+        <!-- Instructor Registration flow-->
+        <form id="frmInstructorRegister" class="mt-4 hidden">
+            <h1 class="text-xl font-bold text-white">Instructor Registration</h1>
+            <!--Progress bar for instructor registration-->
+            <ul class="steps steps-horizontal text-white">
+                <li id="prgStep1" class="step step-secondary">Account Info</li>
+                <li id="prgStep2" class="step">Confirm Email</li>
+                <li id="prgStep3" class="step">Select Courses</li>
+                <li id="prgStep4" class="step">Complete</li>
+            </ul>
+
+            <!--First page for instructor registration-->
+            <div id="frmInstructorFirstPage">
+                <fieldset id="frmInstructorFirstPage" class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">
+                    <label class="fieldset-label">Full Name</label>
+                    <input type="text" class="input input-accent" placeholder="John Smith" />
+
+                    <label class="fieldset-label">Suffic</label>
+                    <input type="text" class="input input-accent" placeholder="eg Professor, Mrs, Mr, etc" />
+
+                    <label class="fieldset-label">Email</label>
+                    <input type="email" class="input input-accent validator" placeholder="Email" />
+                    
+                    <label class="fieldset-label">Password</label>
+                    <input type="password" class="input input-accent " placeholder="Password" />
+                
+                    <label class="fieldset-label">Confirm Password</label>
+                    <input type="password" class="input input-accent " placeholder="Confirm Password" />
+                    
+                    <label class="fieldset-label">School/University </label>
+                    <input type="text" class="input input-accent " placeholder="ex: Tennesee Tech" />
+                    
+                    <button type="button" id="btnInstructorRegister" class="btn btn-primary text-white mt-4">Register</button>
+                </fieldset>
+                <button type="button" id="btnInstructorGoBack" class="btn btn-base-100 mt-1 mr-54">Go Back</button>
+            </div>
+
+            <div id="frmInstructorSecondPage" class="mt-4 hidden">
+                <div class="card bg-base-100 w-96 shadow-sm">
+                    <div class="card-body">
+                      <h2 class="card-title">Confirm Email</h2>
+                      <p>Please Enter your confirmation code found at your email</p>
+                      <input type="text" class="input input-accent" placeholder="ex 112233"/>
+                      <button type="button" id="btnInstructorConfirmEmail" class="btn btn-primary text-white mt-1">Confirm Code</button>
+                    </div>
+                  </div>
+            </div>
+
+            <div id="frmInstructorThirdPage" class="mt-4 hidden">
+                <div class="card bg-base-100 w-96 shadow-sm">
+                    <div class="card-body">
+                      <h2 class="card-title">How many classes will you use JQReview for?</h2>
+                      <p>Note: one Instructor may only use this product for up to 5 classes a semester by default</p>
+                      <p>If more classes are needed, please consult how to use</p>
+                      <select class="select">
+                        <option disabled selected>Number of Classes</option>
+                        <option value=1>1</option>
+                        <option value=2>2</option>
+                        <option value=3>3</option>
+                        <option value=4>4</option>
+                        <option value=5>5</option>
+                      </select>
+                      <button type="button" id="btnInstructorConfirmEmail" class="btn btn-primary text-white mt-1">Confirm Classes</button>
+                    </div>
+                </div>
+            </div>
+
         </form>
         
         <!-- Student Registration -->
-        <form id="frmStudentRegister" class="flex flex-col items-center justify-center hidden">
-            <h1 class="text-2xl font-bold">Student Registration</h1>
+        <form id="frmStudentRegister" class="mt-24 hidden">
+            <h1 class="text-xl font-bold font-sans text-white">Student Registration</h1>
+            <fieldset class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">   
+                <label class="fieldset-label">Full Name</label>
+                <input type="text" class="input input-accent" placeholder="John Smith" />
+
+                <label class="fieldset-label">Email</label>
+                <input type="email" class="input input-accent validator" placeholder="Email" />
+                
+                <label class="fieldset-label">Password</label>
+                <input type="password" class="input input-accent " placeholder="Password" />
+            
+                <label class="fieldset-label">Confirm Password</label>
+                <input type="password" class="input input-accent " placeholder="Confirm Password" />
+                
+                <label class="fieldset-label">Class Code </label>
+                <input type="text" class="input input-accent " placeholder="ex: 003885" />
+                
+                <button class="btn btn-primary text-white mt-4">Register</button>
+              </fieldset>
+            <button type="button" id="btnStudentGoBack" class="btn btn-base-100 mt-2 mr-54">Go Back</button>
         </form>
 
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
       <script type="module" src="/src/main.js"></script>
       <script>
-        var intIndex = 0;
+        //initial index of first step (id="prgStep1")
+        var intIndex = 1;
 
         //update intIndex position by moving up a step
         function inc(){
@@ -109,42 +193,57 @@
             intIndex -= 1;
         }
 
+        function stepUp(intIndex){
+            switch(intIndex){
+                case 2:
+                    $('#prgStep2').addClass("step-secondary");
+                    $('#frmInstructorFirstPage').hide();
+                    $('#frmInstructorSecondPage').fadeIn();
+                    break;
+                case 3:
+                    $('#prgStep3').addClass("step-secondary");
+                    $('#frmInstructorSecondPage').hide();
+                    $('#frmInstructorThirdPage').fadeIn();
+                    break;
+                case 4:
+                    $('#prgStep4').addClass("step-secondary");
+                    $('#frmInstructorThirdPage').hide();
+                    $('#frmInstructorFourthPage').fadeIn();
+                    break;
+                default:
+                    console.log("oops something's not working")
+            }
+        }
+
+        $('#btnInstructorRegister').on('click', function () {
+            inc();
+            stepUp(intIndex);
+        })
+
+        $('#btnInstructorConfirmEmail').on('click', function () {
+            inc();
+            stepUp(intIndex);
+        })
+
         $('#btnInstructor').on('click', function () {
             $('#frmWhoAreYou').hide(); 
-            $('#frmInstructorRegister').fadeIn();
+            $('#frmInstructorRegister').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
         });
 
         $('#btnStudent').on('click', function () {
-            $('#frmWhoAreYou').hide(); 
-            $('#frmStudentRegister').fadeIn();
+            $('#frmWhoAreYou').hide();
+            $('#frmStudentRegister').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
+        });
+
+        $('#btnStudentGoBack').on('click', function () {
+            $('#frmWhoAreYou').fadeIn(); 
+            $('#frmStudentRegister').hide();
+        });
+
+        $('#btnInstructorGoBack').on('click', function () {
+            $('#frmWhoAreYou').fadeIn(); 
+            $('#frmInstructorRegister').hide();
         });
       </script>
 </body>
 </html>
-
-<!--
-
-<ul class="steps steps-vertical lg:steps-horizontal text-white">
-    <li id="prgStep1" class="step step-secondary">Who are you?</li>
-    <li id="prgStep2" class="step step-secondary">Choose plan</li>
-    <li id="prgStep3" class="step">Purchase</li>
-    <li id="prgStep4" class="step">Receive Product</li>
-</ul>
-
-<fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">            
-    <label class="fieldset-label">Email</label>
-    <input type="email" class="input validator" placeholder="Email" />
-    
-    <label class="fieldset-label">Password</label>
-    <input type="password" class="input" placeholder="Password" />
-
-    <label class="fieldset-label">Confirm Password</label>
-    <input type="password" class="input" placeholder="Password" />
-    
-    <label class="fieldset-label">Class Code </label>
-    <input type="email" class="input validator" placeholder="Email" />
-    
-    <button class="btn btn-neutral mt-4">Register</button>
-  </fieldset>
-
--->
