@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/logo.png" />
-    <title>Login</title>
+    <title>Register</title>
 </head>
-<body class="bg-gradient-to-r from-accent via-secondary to-accent">
-     <!--Navbar for website splash page, login page, register-->
-     <div class="navbar bg-accent shadow-sm">
+<body class="bg-radial from-secondary to-accent h-screen">
+    <!--Navbar for website splash page, login page, register-->
+    <div class="navbar bg-accent shadow-sm">
         <div class="navbar-start">
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -40,7 +40,7 @@
         <div class="navbar-end">
             <label class="swap swap-rotate text-white">
                 <!-- this hidden checkbox controls the state -->
-                <input type="checkbox" id="theme-controller" class="btnTheme-controller" value="lofi"/>
+                <input type="checkbox" class="theme-controller" value="lofi"/>
               
                 <!-- sun icon -->
                 <svg
@@ -70,22 +70,81 @@
         </div>
       </div>
 
-    <div class="flex flex-col w-screen h-screen items-center justify-center">
-            <figure>
-                <img
-                src="/logo.png"
-                alt="JQReview Logo"
-                />
-            </figure>
-            <div class="card bg-neutral text-white w-96">
-                <div class="card-body items-center justify-center text-center">
-                    <h2 class="card-title">Login</h2>
-                    <input type="text" placeholder="Username" class="input input-accent text-black font-bold mt-0 w-full" />
-                    <input type="text" placeholder="Password" class="input input-accent text-black font-bold mt-1 mb-3 w-full" />
-                    <button class="btn btn-primary w-full">Login</button>
-                </div>
+      <!-- Initial card asking for instructor vs student registration-->
+      <form id="frmWhoAreYou" class="flex flex-col items-center justify-center mt-24">
+        <h1 class="text-2xl text-white font-bold font-sans mt-12">Let's Get You Registered!</h1>
+        <div  class="card bg-base-100 text-base-content w-96 mt-4">
+            <div class="card-body items-center text-center">
+              <h2 class="card-title">Who are you?</h2>
+              <p class="font-sans font-bold">Please select if you are a student or instructor</p>
+              <div class="card-actions justify-end">
+                <button type="button" id="btnStudent" class="btn btn-primary">Student</button>
+                <button type="button" id="btnInstructor" class="btn btn-secondary text-white">Instructor</button>
+              </div>
             </div>
-    </div>
-    <script type="module" src="/src/main.js"></script>
+          </div>
+        </form>
+
+        <!-- Instructor Registration -->
+        <form id="frmInstructorRegister" class="flex flex-col items-center justify-center hidden">
+            <h1 class="text-2xl font-bold">Instructor Registration</h1>
+        </form>
+        
+        <!-- Student Registration -->
+        <form id="frmStudentRegister" class="flex flex-col items-center justify-center hidden">
+            <h1 class="text-2xl font-bold">Student Registration</h1>
+        </form>
+
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script type="module" src="/src/main.js"></script>
+      <script>
+        var intIndex = 0;
+
+        //update intIndex position by moving up a step
+        function inc(){
+            intIndex += 1;
+        }
+        //update position by going back a step
+        function dec(){
+            intIndex -= 1;
+        }
+
+        $('#btnInstructor').on('click', function () {
+            $('#frmWhoAreYou').hide(); 
+            $('#frmInstructorRegister').fadeIn();
+        });
+
+        $('#btnStudent').on('click', function () {
+            $('#frmWhoAreYou').hide(); 
+            $('#frmStudentRegister').fadeIn();
+        });
+      </script>
 </body>
 </html>
+
+<!--
+
+<ul class="steps steps-vertical lg:steps-horizontal text-white">
+    <li id="prgStep1" class="step step-secondary">Who are you?</li>
+    <li id="prgStep2" class="step step-secondary">Choose plan</li>
+    <li id="prgStep3" class="step">Purchase</li>
+    <li id="prgStep4" class="step">Receive Product</li>
+</ul>
+
+<fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">            
+    <label class="fieldset-label">Email</label>
+    <input type="email" class="input validator" placeholder="Email" />
+    
+    <label class="fieldset-label">Password</label>
+    <input type="password" class="input" placeholder="Password" />
+
+    <label class="fieldset-label">Confirm Password</label>
+    <input type="password" class="input" placeholder="Password" />
+    
+    <label class="fieldset-label">Class Code </label>
+    <input type="email" class="input validator" placeholder="Email" />
+    
+    <button class="btn btn-neutral mt-4">Register</button>
+  </fieldset>
+
+-->
