@@ -139,17 +139,39 @@
                       <h2 class="card-title">How many classes will you use JQReview for?</h2>
                       <p>Note: one Instructor may only use this product for up to 5 classes a semester by default</p>
                       <p>If more classes are needed, please consult how to use</p>
-                      <select class="select">
+                      <select id="selNumClasses" class="select">
                         <option disabled selected>Number of Classes</option>
-                        <option value=1>1</option>
-                        <option value=2>2</option>
-                        <option value=3>3</option>
-                        <option value=4>4</option>
-                        <option value=5>5</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
                       </select>
-                      <button type="button" id="btnInstructorConfirmEmail" class="btn btn-primary text-white mt-1">Confirm Classes</button>
+                      <button type="button" id="btnInstructorConfirmNumClasses" class="btn btn-primary text-white mt-1">Confirm Classes</button>
                     </div>
                 </div>
+            </div>
+
+            <div id="frmInstructorFourthPage" class="mt-4 hidden">
+              <div class="card bg-base-100 w-96 shadow-sm">
+                <div class="card-body">
+                  <h2 class="card-title">What are you classes called?</h2>
+                  <div id="inputFields">
+
+                  </div>
+                  <button type="button" id="btnInstructorConfirmClassNames" class="btn btn-primary text-white mt-1">Confirm Names</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="frmInstructorFifthPage"  class="mt-4 hidden">
+              <div class="card bg-base-100 w-96 shadow-sm">
+                <div class="card-body">
+                  <h2 class="card-title">Complete!</h2>
+                  <p>You can find your class codes inside the class section when you login!</p>
+                  <a type="button" class="btn btn-primary text-white mt-1" href="/pages/login.html">Login</a>
+                </div>
+              </div>
             </div>
 
         </form>
@@ -184,15 +206,29 @@
         //initial index of first step (id="prgStep1")
         var intIndex = 1;
 
+        //variable to track how many classes a professor has selected
+        var intInstructorClassNum = 0;
+
         //update intIndex position by moving up a step
         function inc(){
             intIndex += 1;
         }
-        //update position by going back a step
-        function dec(){
-            intIndex -= 1;
+        //function for keeping adding input fields based on num classes by an instructor
+        function classGenerator(intInstructorClassNum){
+          let strClosingBracket = ' />';
+          let strOpeningBracket = '<input ';
+          let strClassParams = `class="input input-accent mt-1" `;
+          let strId = `id="inputClassName`;
+          let strPlaceholder = `placeholder="Class `;
+          let strType = `type="text" `
+          let temp = "";
+          for (let i = 0; i < intInstructorClassNum; i++){
+            temp = strOpeningBracket + strClassParams + strType + strId + (i + 1) + `" ` + strPlaceholder + (i + 1) + `" ` + strClosingBracket;
+            $('#inputFields').append(temp);
+          }
         }
 
+        //function for adding progress to progress bar
         function stepUp(intIndex){
             switch(intIndex){
                 case 2:
@@ -207,13 +243,23 @@
                     break;
                 case 4:
                     $('#prgStep4').addClass("step-secondary");
-                    $('#frmInstructorThirdPage').hide();
-                    $('#frmInstructorFourthPage').fadeIn();
+                    $('#frmInstructorFourthPage').hide();
+                    $('#frmInstructorFifthPage').fadeIn();
                     break;
-                default:
-                    console.log("oops something's not working")
             }
         }
+
+        $('#btnInstructorConfirmNumClasses').on('click', function () {
+          $('#frmInstructorThirdPage').hide();
+          intInstructorClassNum = $('#selNumClasses').find(":selected").val();
+          classGenerator(intInstructorClassNum);
+          $('#frmInstructorFourthPage').fadeIn();
+        })
+
+        $('#btnInstructorConfirmClassNames').on('click', function () {
+            inc();
+            stepUp(intIndex);
+        })
 
         $('#btnInstructorRegister').on('click', function () {
             inc();
