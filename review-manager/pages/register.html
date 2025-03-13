@@ -33,7 +33,7 @@
         </div>
         <div class="navbar-center hidden lg:flex">
           <ul class="menu menu-horizontal px-1">
-            <li><a class="text-white text-lg font-sans">How to use</a></li>
+            <li><a class="text-white text-lg font-sans" href="/index.html#sectionHowToUse">How to use</a></li>
             <li><a class="text-white text-lg font-sans" href="/pages/register.html">Register</a></li>
           </ul>
         </div>
@@ -73,6 +73,7 @@
       <!-- Initial card asking for instructor vs student registration-->
       <form id="frmWhoAreYou" class="flex flex-col items-center justify-center mt-24">
         <h1 class="text-2xl text-white font-bold font-sans mt-12">Let's Get You Registered!</h1>
+        <h1 class="text-lg text-white font-sans mt-1">note: students can later be instructors and vice versa</h1>
         <div  class="card bg-base-100 text-base-content w-96 mt-4">
             <div class="card-body items-center text-center">
               <h2 class="card-title">Who are you?</h2>
@@ -102,7 +103,7 @@
                     <label class="fieldset-label">Full Name</label>
                     <input type="text" class="input input-accent" placeholder="John Smith" />
 
-                    <label class="fieldset-label">Suffic</label>
+                    <label class="fieldset-label">Prefix</label>
                     <input type="text" class="input input-accent" placeholder="eg Professor, Mrs, Mr, etc" />
 
                     <label class="fieldset-label">Email</label>
@@ -192,7 +193,7 @@
                 <label class="fieldset-label">Confirm Password</label>
                 <input type="password" class="input input-accent " placeholder="Confirm Password" />
                 
-                <label class="fieldset-label">Class Code </label>
+                <label class="fieldset-label">Class Code (optional)</label>
                 <input type="text" class="input input-accent " placeholder="ex: 003885" />
                 
                 <button class="btn btn-primary text-white mt-4">Register</button>
