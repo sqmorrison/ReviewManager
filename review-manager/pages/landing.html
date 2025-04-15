@@ -7,7 +7,8 @@
         <title>Home</title>
     </head>
 <body class="bg-gradient-to-r from-accent via-secondary to-accent min-h-screen">
-    <div class="navbar bg-accent shadow-sm">
+  <!--Navbar for application-->
+  <div class="navbar bg-accent shadow-sm">
         <div class="navbar-start">
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -16,11 +17,11 @@
             <ul
               tabindex="0"
               class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-              <li><a>How to use</a></li>
-              <li><a>Register</a></li>
+              <li><a href="createClass.html">Create a Class</a></li>
+              <li><a href="registerClass.html">Register for a Class</a></li>
             </ul>
           </div>
-          <a class="btn btn-ghost text-white text-xl" href="index.html">
+          <a class="btn btn-ghost text-white text-xl lg:visible invisible" href="index.html">
             <figure>
                 <img
                 src="/logo.png"
@@ -31,10 +32,10 @@
             JQReview</a>
         </div>
 
-        <div class="navbar-center lg:flex">
+        <div class="navbar-center lg:flex lg:visible hidden">
           <ul class="menu menu-horizontal px-1">
             <li><a class="text-white text-lg font-sans" href="createClass.html">Create a Class</a></li>
-            <li><a class="text-white text-lg font-sans" >Register for a Class</a></li>
+            <li><a class="text-white text-lg font-sans" href="registerClass.html">Register for a Class</a></li>
           </ul>
         </div> 
 
@@ -86,7 +87,7 @@
                 <h2 class="card-title justify-center">Team Name</h2>
                 <p>Team Description Goes Here</p>
                 <div class="card-actions justify-center">
-                <button class="btn btn-primary">View Team</button>
+                  <a type="button" class="btn btn-primary w-1/2" href="/pages/team.html">View Team</a>
                 </div>
             </div>
             </div>
@@ -104,7 +105,7 @@
                 <h2 class="card-title justify-center">Team Name</h2>
                 <p>Team Description Goes Here</p>
                 <div class="card-actions justify-center">
-                <button class="btn btn-primary">View Team</button>
+                  <a type="button" class="btn btn-primary w-1/2" href="/pages/team.html">View Team</a>
                 </div>
             </div>
             </div>
