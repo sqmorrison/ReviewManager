@@ -9,6 +9,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "node": "^23.11.0"
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "node": "^23.11.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
   }
 }

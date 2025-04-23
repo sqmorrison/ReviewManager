@@ -103,7 +103,7 @@
 
       <div class="container mx-auto px-4">
         <h3 class="text-2xl font-bold text-white mt-3 mb-2">Student:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 " id="sectionInstructorTeams">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 " id="sectionStudentTeams">
             <!--this is just a template fot what the cards will look like but for the final version this will be dynamically made for each user-->
             <div class="card bg-base-100 shadow-xl max-w-sm max-h-[400px]">
             <figure><img src="/logo.png" alt="team Logo" class=" h-[200px]" /></figure>
@@ -125,5 +125,51 @@
     
 </body>
 <script type="module" src="/src/main.js"></script>
+<script>
+  async function loadMyTeams() {
+    const strEmail = 'juliant807@gmail.com'; // Replace with the actual email
+
+    let res = await fetch(`http://localhost:8000/teams?email=${strEmail}`, {
+        credentials: 'include'
+    });
+
+    if (!res.ok) throw new Error('Couldn’t load teams');
+
+    const { instructor, student } = await res.json();
+
+    const instrContainer = document.getElementById('sectionInstructorTeams');
+    const studContainer = document.getElementById('sectionStudentTeams');
+
+    // Helper to make a card element
+    function makeCard({ team_id, name, description }) {
+        const div = document.createElement('div');
+        div.className = 'card bg-base-100 shadow-xl max-w-sm max-h-[400px]';
+        div.innerHTML = `
+            <figure>
+                <img src="/logo.png" alt="team Logo" class="h-[200px]" />
+            </figure>
+            <div class="card-body text-center">
+                <h2 class="card-title justify-center">${name}</h2>
+                <p>${description}</p>
+                <div class="card-actions justify-center">
+                    <a class="btn btn-primary w-1/2" href="/pages/team.html?${team_id}">
+                        View Team
+                    </a>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    // Clear & render
+    instrContainer.innerHTML = '';
+    studContainer.innerHTML = '';
+
+    instructor.forEach(t => instrContainer.appendChild(makeCard(t)));
+    student.forEach(t => studContainer.appendChild(makeCard(t)));
+}
+
+loadMyTeams().catch(console.error);
+</script>
 
 </html>
