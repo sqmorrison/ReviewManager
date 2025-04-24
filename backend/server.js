@@ -17,15 +17,22 @@ app.use(cors(corsOptions))
 app.use(express.json())
 
 app.get('/teams', (req, res, next) => {
-    const strEmail = req.query.email.trim().toLowerCase()
+    const strEmail = req.query.email.trim().toLowerCase();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(strEmail)) {
         return res.status(400).json({ error: "You must provide a valid email address" });
     }
-    
-    let strCommand = `SELECT tblTeams.team_id, tblTeams.name,tblTeams.description, tblRoles.role FROM tblTeams JOIN tblRoles ON tblTeams.team_id = tblRoles.team_id WHERE tblRoles.email = ?;`
-    db.all(strCommand, [strEmail], function (err, rows) { // Add 'rows' parameter
+
+    const strCommand = `
+        SELECT tblTeams.team_id, tblTeams.name, tblTeams.description, tblRoles.role
+        FROM tblRoles
+        JOIN tblTeams ON tblTeams.team_id = tblRoles.team_id
+        JOIN tblUsers ON tblUsers.UserID = tblRoles.user_id
+        WHERE tblUsers.Email = ?
+    `;
+
+    db.all(strCommand, [strEmail], function (err, rows) {
         if (err) {
             console.log(err);
             res.status(400).json({
@@ -41,8 +48,9 @@ app.get('/teams', (req, res, next) => {
                 student
             });
         }
-    })
-})
+    });
+});
+
 
 
 app.listen(HTTP_PORT,() => {
