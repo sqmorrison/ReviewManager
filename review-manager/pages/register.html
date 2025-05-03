@@ -196,10 +196,31 @@
                 <label class="fieldset-label">Class Code (optional)</label>
                 <input type="text" class="input input-accent " placeholder="ex: 003885" />
                 
-                <button class="btn btn-primary text-white mt-4">Register</button>
+                <button type="button" id="btnStudentRegister" class="btn btn-primary text-white mt-4">Register</button>
               </fieldset>
             <button type="button" id="btnStudentGoBack" class="btn btn-base-100 mt-2 mr-54">Go Back</button>
         </form>
+
+        <div id="frmStudentSecondPage" class="mt-24 hidden">
+          <div class="card bg-base-100 w-96 shadow-sm">
+              <div class="card-body">
+                <h2 class="card-title">Confirm Email</h2>
+                <p>Please Enter your confirmation code found at your email</p>
+                <input type="text" class="input input-accent" placeholder="ex 112233"/>
+                <button type="button" id="btnStudentConfirmEmail" class="btn btn-primary text-white mt-1">Confirm Code</button>
+              </div>
+            </div>
+        </div>
+
+        <div id="frmStudentSuccessPage"  class="mt-24 hidden">
+          <div class="card bg-base-100 w-96 shadow-sm">
+            <div class="card-body">
+              <h2 class="card-title">Complete!</h2>
+              <p>You can add classes inside the class section when you login!</p>
+              <a type="button" class="btn btn-primary text-white mt-1" href="/pages/login.html">Login</a>
+            </div>
+          </div>
+        </div>
 
       <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
       <script type="module" src="/src/main.js"></script>
@@ -280,6 +301,16 @@
         $('#btnStudent').on('click', function () {
             $('#frmWhoAreYou').hide();
             $('#frmStudentRegister').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
+        });
+
+        $('#btnStudentRegister').on('click', function () {
+            $('#frmStudentRegister').hide();
+            $('#frmStudentSecondPage').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
+        });
+
+        $('#btnStudentConfirmEmail').on('click', function () {
+            $('#frmStudentSecondPage').hide();
+            $('#frmStudentSuccessPage').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
         });
 
         $('#btnStudentGoBack').on('click', function () {
