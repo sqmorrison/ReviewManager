@@ -19,6 +19,15 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(express.json())
 
+const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+      user: 'your_ethereal_user',
+      pass: 'your_ethereal_pass'
+    }
+  });
+
 /* 
 UserID INTEGER PRIMARY KEY AUTOINCREMENT,
     FirstName TEXT NOT NULL,
@@ -107,8 +116,30 @@ app.post('/login', (req, res, next) => {
     })
 })
 
-app.get('/logout', (req, res) => {
+app.get('/mfa', (req, res) => {
+    if (!req.session.tempUser) return res.redirect('/');
+    res.sendFile(path.join(__dirname, 'views', 'mfa.html'));
+  });
+  
+app.post('/mfa', (req, res) => {
+    const { token } = req.body;
+    const email = req.session.tempUser;
 
+    db.get("SELECT * FROM users WHERE email = ?", [email], (err, user) => {
+        if (user && user.mfaCode === token && Date.now() < user.mfaExpires) {
+        req.session.user = email;
+        delete req.session.tempUser;
+        res.redirect('/dashboard');
+        } else {
+        res.send("Invalid or expired MFA code.");
+        }
+    });
+});
+
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
+
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => res.redirect('/'));
 })
 
 app.get('/teams', (req, res, next) => {
