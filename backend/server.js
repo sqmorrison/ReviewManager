@@ -177,6 +177,254 @@ app.get('/teams', (req, res, next) => {
     });
 });
 
+// POST for creating a course
+app.post('/courses', (req, res, next) => {
+    const { strInstructorID, strCourseName, strCourseNumber, strCourseSection, strCourseTerm, dtStartDate, dtEndDate } = req.body;
+
+    // need to pass in instructorID to the course creation function
+    // check if the instructorID is valid
+    const strCommandVerify = 'SELECT * FROM tblUsers WHERE UserID = ?';
+    db.get(strCommandVerify, [strInstructorID], function (err, row) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else if (!row) {
+            res.status(400).json({
+                status: "error",
+                message: "Instructor not found"
+            });
+        }
+    });
+
+
+    // UUID for the course
+    const strCourseID = uuidv4();
+    const strEnrollmentID = uuidv4();
+
+    const strCommand = 'INSERT INTO tblCourses (CourseID, CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate) VALUES (?,?,?,?,?,?,?)';
+
+    // create the course in the database
+    db.run(strCommand, [strCourseID, strCourseName, strCourseNumber, strCourseSection, strCourseTerm, dtStartDate, dtEndDate], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                courseID: strCourseID,
+                message: "Course created successfully"
+            });
+        }
+    });
+
+    // create the enrollment in the database (assign instructor to course)
+    const strCommand2 = 'INSERT INTO tblEnrollments (EnrollmentID, CourseID, UserID) VALUES (?,?,?)';
+    db.run(strCommand2, [strEnrollmentID, strCourseID, strInstructorID], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                enrollmentID: strEnrollmentID,
+                message: "Enrollment created successfully"
+            });
+        }
+    });
+});
+
+// GET for getting all course groups for a specific instructor
+// assuming that the landing page for instructors simply shows all teams (tblCourseGroups) rather than all courses (tblCourses)
+app.get('/instructorTeams', (req, res, next) => {
+    const strEmail = req.query.email.trim().toLowerCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(strEmail)) {
+        return res.status(400).json({ error: "You must provide a valid email address" });
+    }
+
+    const strCommand = `
+        SELECT tblUsers.UserID, tblGroupMembers.UserID, tblCourseGroups.GroupID, tblCourseGroups.GroupName
+        FROM tblUsers
+        JOIN tblGroupMembers ON tblUsers.UserID = tblGroupMembers.UserID
+        JOIN tblCourseGroups ON tblGroupMembers.GroupID = tblCourseGroups.GroupID
+        WHERE tblUsers.Email = ?
+    `;
+
+    db.all(strCommand, [strEmail], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                instructor,
+                student
+            });
+        }
+    });
+});
+
+// GET for getting all members and assessments of a specific course group
+app.get('/groupInfo', (req, res, next) => {
+    const strGroupID = req.query.groupID.trim().toLowerCase();
+
+    const strCommand = `
+        SELECT tblUsers.UserID, tblUsers.FirstName, tblUsers.LastName, tblGroupMembers.GroupID, tblAssessments.AssessmentID, tblAssessments.AssessmentName, tblAssessments.CourseID
+        FROM tblUsers
+        JOIN tblGroupMembers ON tblUsers.UserID = tblGroupMembers.UserID
+        JOIN tblCourseAssessments ON tblGroupMembers.GroupID = tblCourseAssessments.GroupID
+        WHERE tblGroupMembers.GroupID = ?
+    `;
+
+    db.all(strCommand, [strGroupID], function (err, rows) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                members: rows
+            });
+        }
+    });
+});
+
+// PUT for updating a course group
+// requires authentication to ensure that only the instructor can update the course group
+app.put('/updateGroup', (req, res, next) => {
+    // assuming that arrGroup members is an array of user IDs
+    const { strGroupID, strGroupName, arrGroupMembers } = req.body;
+    const strUserID = req.query.userID.trim().toLowerCase(); // instructor ID
+
+    // verify that the instructor is in the group
+    const strCommandVerify = 'SELECT * FROM tblGroupMembers WHERE GroupID = ? AND UserID = ?';
+    db.get(strCommandVerify, [strGroupID, strUserID], function (err, row) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else if (!row) {
+            res.status(400).json({
+                status: "error",
+                message: "Instructor not found in group"
+            });
+        }
+    });
+
+    const strCommand = 'UPDATE tblCourseGroups SET GroupName = ? WHERE GroupID = ?';
+
+    db.run(strCommand, [strGroupName, strGroupID], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                message: "Course group updated successfully"
+            });
+        }
+    });
+
+    // update tblGroupMembers to add or remove members from the group
+    const strCommand2 = 'DELETE FROM tblGroupMembers WHERE GroupID = ?';
+    db.run(strCommand2, [strGroupID], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            // add the new members to the group
+            const strCommand3 = 'INSERT INTO tblGroupMembers (GroupID, UserID) VALUES (?,?)';
+            arrGroupMembers.forEach(member => {
+                db.run(strCommand3, [strGroupID, member], function (err) {
+                    if (err) {
+                        console.log(err);
+                        res.status(400).json({
+                            status: "error",
+                            message: err.message
+                        });
+                    }
+                });
+            });
+        }
+    });
+});
+
+// DELETE for deleting a course group
+// requires authentication to ensure that only the instructor can update the course group
+app.delete('/deleteGroup', (req, res, next) => {
+    const strGroupID = req.query.groupID.trim().toLowerCase();
+    const strUserID = req.query.userID.trim().toLowerCase(); // instructor ID
+
+    // verify that the instructor is in the group
+    const strCommandVerify = 'SELECT * FROM tblGroupMembers WHERE GroupID = ? AND UserID = ?';
+    db.get(strCommandVerify, [strGroupID, strUserID], function (err, row) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else if (!row) {
+            res.status(400).json({
+                status: "error",
+                message: "Instructor not found in group"
+            });
+        }
+    });
+
+    // first, remove all members from the group
+    const strCommandRemoveMembers = 'DELETE FROM tblGroupMembers WHERE GroupID = ?';
+    db.run(strCommandRemoveMembers, [strGroupID], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        }
+    });
+
+    const strCommand = 'DELETE FROM tblCourseGroups WHERE GroupID = ?';
+
+    db.run(strCommand, [strGroupID], function (err) {
+        if (err) {
+            console.log(err);
+            res.status(400).json({
+                status: "error",
+                message: err.message
+            });
+        } else {
+            res.json({
+                status: "success",
+                message: "Course group deleted successfully"
+            });
+        }
+    });
+});
 
 
 app.listen(HTTP_PORT,() => {
