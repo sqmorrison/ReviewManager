@@ -5,3 +5,6 @@ here is a list of what is installed currently in the backend modules:
     body-parser
     sqlite3
     node
+    express-session
+    nodemailer
+    bcrypt
