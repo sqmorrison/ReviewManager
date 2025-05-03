@@ -7,3 +7,4 @@ here is a list of what is installed currently in the backend modules:
     node
     express-session
     nodemailer
+    bcrypt
