@@ -98,7 +98,7 @@
             </ul>
 
             <!--First page for instructor registration-->
-            <div id="frmInstructorFirstPage">
+            <form id="frmInstructorFirstPage">
                 <fieldset id="frmInstructorFirstPage" class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">
                     <label class="fieldset-label">First/Last Name</label>
                     <input type="text" class="input input-accent" placeholder="John Smith" />
@@ -121,7 +121,7 @@
                     <button type="button" id="btnInstructorRegister" class="btn btn-primary text-white mt-4">Register</button>
                 </fieldset>
                 <button type="button" id="btnInstructorGoBack" class="btn btn-base-100 mt-1 mr-54">Go Back</button>
-            </div>
+              </form>
 
             <div id="frmInstructorSecondPage" class="mt-4 hidden">
                 <div class="card bg-base-100 w-96 shadow-sm">
@@ -178,7 +178,7 @@
         </form>
         
         <!-- Student Registration -->
-        <form id="frmStudentRegister" class="mt-24 hidden">
+        <form id="frmStudentRegister" class="mt-24 hidden" action="/studentRegister" method="POST">
             <h1 class="text-xl font-bold font-sans text-white">Student Registration</h1>
             <fieldset class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">   
                 <label class="fieldset-label">First/Last Name</label>
@@ -196,7 +196,7 @@
                 <label class="fieldset-label">Class Code (optional)</label>
                 <input type="text" class="input input-accent " placeholder="ex: 003885" />
                 
-                <button type="button" id="btnStudentRegister" class="btn btn-primary text-white mt-4">Register</button>
+                <button type="submit" id="btnStudentRegister" class="btn btn-primary text-white mt-4">Register</button>
               </fieldset>
             <button type="button" id="btnStudentGoBack" class="btn btn-base-100 mt-2 mr-54">Go Back</button>
         </form>

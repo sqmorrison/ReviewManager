@@ -1,0 +1,25 @@
+{
+  "name": "reviewmanager",
+  "version": "1.0.0",
+  "description": "Feedback app for capstone groups, developed by Julian Trujillo and Quinn Morrison",
+  "main": "index.js",
+  "scripts": {
+  "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+  "dev:client": "cd review-manager && npm run dev",
+  "dev:server": "cd backend && node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sqmorrison/ReviewManager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sqmorrison/ReviewManager/issues"
+  },
+  "homepage": "https://github.com/sqmorrison/ReviewManager#readme",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

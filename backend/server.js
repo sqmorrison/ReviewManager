@@ -9,9 +9,6 @@ const datNow = new Date();
 const upload = multer({ storage: multer.memoryStorage() }); // Use in-memory storage for BLOB
 const path = require('path');
 
-
-
-//install bcrypt
 const dbSource = "review.db"
 const HTTP_PORT = 8000
 const db = new sqlite3.Database(dbSource)
@@ -24,14 +21,15 @@ const corsOptions = {
 app.use(cors(corsOptions))
 app.use(express.json())
 
+//temporary no reply email for multifactor auth
 const transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
     port: 587,
     auth: {
-      user: 'your_ethereal_user',
-      pass: 'your_ethereal_pass'
+        user: 'jaydon.medhurst@ethereal.email',
+        pass: 'dryJ2czqz7cETXqws8'
     }
-  });
+});
 
 /* 
 UserID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +50,7 @@ app.post('/studentRegister', (req, res, next) => {
     //hash the password before it can be stored on the database
     const strHashedPassword = bcrypt.hashSync(strPassword, 10);
 
-    //split the full name into 
+    //split the full name into first and last name
     const arrName = strFullName.split(" ");
     const strFirstName = arrName[0];
     const strLastName = arrName[1];
@@ -120,28 +118,21 @@ app.post('/login', (req, res, next) => {
           });
     })
 })
-
-app.get('/mfa', (req, res) => {
-    if (!req.session.tempUser) return res.redirect('/');
-    res.sendFile(path.join(__dirname, 'views', 'mfa.html'));
-  });
   
 app.post('/mfa', (req, res) => {
     const { token } = req.body;
     const email = req.session.tempUser;
 
-    db.get("SELECT * FROM users WHERE email = ?", [email], (err, user) => {
+    db.get("SELECT * FROM tblUsers WHERE email = ?", [email], (err, user) => {
         if (user && user.mfaCode === token && Date.now() < user.mfaExpires) {
         req.session.user = email;
         delete req.session.tempUser;
-        res.redirect('/dashboard');
+        res.redirect('/landing.html');
         } else {
         res.send("Invalid or expired MFA code.");
         }
     });
 });
-
-app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 
 app.get('/logout', (req, res) => {
     req.session.destroy(() => res.redirect('/'));
