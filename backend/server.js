@@ -2,9 +2,13 @@ const express = require('express')
 const cors = require('cors')
 const {v4:uuidv4} = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 const datNow = new Date();
+const upload = multer({ storage: multer.memoryStorage() }); // Use in-memory storage for BLOB
+const path = require('path');
+
 
 //install bcrypt
 const dbSource = "review.db"
@@ -13,7 +17,7 @@ const db = new sqlite3.Database(dbSource)
 
 var app = express()
 const corsOptions = {
-    origin: 'http://localhost:3000', // Replace with your frontend's URL
+    origin: 'http://localhost:3000', // Replace with frontend's URL
     credentials: true // Allow credentials (cookies, etc.)
 };
 app.use(cors(corsOptions))
@@ -177,6 +181,7 @@ app.get('/teams', (req, res, next) => {
     });
 });
 
+<<<<<<< Updated upstream
 // POST for creating a course
 app.post('/courses', (req, res, next) => {
     const { strInstructorID, strCourseName, strCourseNumber, strCourseSection, strCourseTerm, dtStartDate, dtEndDate } = req.body;
@@ -425,6 +430,132 @@ app.delete('/deleteGroup', (req, res, next) => {
         }
     });
 });
+=======
+app.get('/user-profile', (req, res) => {
+    const email = req.query.email;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+    console.log('[GET] /user-profile hit with email:', req.query.email);
+    console.log("[DEBUG] Looking for user with email:", email);
+
+    db.get(`SELECT FirstName || ' ' || LastName AS name, Email, strProfilePhoto FROM tblUsers WHERE Email = ?`, [email], (err, user) => {
+        if (err) {
+            console.error("[DEBUG] Database error:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        console.log("[DEBUG] Query result:", user);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        db.get(`
+            SELECT strDiscord, strTeams, strPhone
+            FROM tblSocials
+            WHERE UserEmail = ?
+          `, [email], (err2, socials) => {
+              if (err2) {
+                  console.error("[DEBUG] Socials query error:", err2);
+                  return res.status(500).json({ error: "Socials query failed" });
+              }
+          
+              res.json({
+                  ...user,
+                  discord: socials?.strDiscord || '',
+                  teams: socials?.strTeams || '',
+                  phone: socials?.strPhone || ''
+              });
+          });
+    });
+});
+  
+
+app.post('/user-profile/update', (req, res) => {
+    console.log('[POST] /user-profile/update hit with body:', req.body);
+    const { name, email, phone, discord, teams } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+  
+    const [ firstName, lastName = '' ] = name.trim().split(' ');
+  
+    // First, update tblUsers
+    db.run(
+      `UPDATE tblUsers
+         SET FirstName = ?, LastName = ?
+       WHERE Email = ?`,
+      [ firstName, lastName, email ],
+      function (err) {
+        if (err) {
+          console.error('[UPDATE tblUsers] error:', err);
+          return res.status(500).json({ error: 'Failed to update user' });
+        }
+  
+        // Then upsert into tblSocials
+        // (you need a UNIQUE(UserEmail) constraint for ON CONFLICT to work)
+        db.run(
+            `UPDATE tblSocials
+               SET strDiscord = ?,
+                   strTeams   = ?,
+                   strPhone   = ?
+             WHERE UserEmail = ?`,
+            [ discord, teams, phone, email ],
+            function(err) {
+              if (err) {
+                console.error('[UPDATE tblSocials] error:', err);
+                return res.status(500).json({ error: 'Failed to update socials' });
+              }
+              // If you want, you can check this.changes to see if any row was updated
+              if (this.changes === 0) {
+                // No row matched—handle as you like (e.g. return 404 or insert a new one)
+                console.warn('[UPDATE tblSocials] no row found to update for', email);
+              }
+              res.json({ message: 'Profile updated successfully' });
+            }
+          );
+      }
+    );
+  });
+  
+  
+  app.post('/user-profile/upload-photo', upload.single('profilePic'), (req, res) => {
+    const email = req.body.email;
+    const buffer = req.file?.buffer;
+  
+    if (!email || !buffer) {
+      return res.status(400).json({ error: 'Email and image are required' });
+    }
+  
+    db.prepare(`
+      UPDATE tblUsers
+      SET strProfilePhoto = ?
+      WHERE Email = ?
+    `).run(buffer, email);
+  
+    res.json({ message: 'Profile photo uploaded successfully' });
+  });
+  
+  /**
+   * GET /user-profile/photo
+   * Serve image BLOB with appropriate content-type
+   */
+  app.get('/user-profile/photo', (req, res) => {
+    const email = req.query.email;
+    if (!email) return res.status(400).send('Missing email');
+  
+    const row = db.prepare(`
+      SELECT strProfilePhoto FROM tblUsers WHERE Email = ?
+    `).get(email);
+  
+    if (!row || !row.strProfilePhoto) {
+      return res.status(404).send('No profile image found');
+    }
+  
+    // Assume JPEG (you can enhance this with file signature detection)
+    res.set('Content-Type', 'image/jpeg');
+    res.send(row.strProfilePhoto);
+  });
+  
+>>>>>>> Stashed changes
 
 
 app.listen(HTTP_PORT,() => {

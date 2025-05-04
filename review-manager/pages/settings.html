@@ -80,7 +80,7 @@
         </div>
       </div> 
   
-    <!-- Centered Card -->
+    <!-- Card where the user will see all the current info -->
     <div class="flex flex-col items-center justify-center min-h-screen">
       <div class="bg-base-100 border-base-300 p-6" style="background-color: transparent;" id="user-settings">
         <div class="card w-96 bg-base-100 shadow-xl mb-4">
@@ -142,7 +142,7 @@
   
               <!-- Update button -->
               <div class="card-actions justify-center mt-4 w-full">
-                <a type="button" class="btn btn-primary w-full">Update Information</a>
+                <button type="button" id="btnUpdateProfile" class="btn btn-primary w-full">Update Information</button>
               </div>
             </div>
           </div>
@@ -152,18 +152,106 @@
   
     <script type="module" src="/src/main.js"></script>
     <script>
-        function previewProfile(input) {
-          if (input.files && input.files[0]) {
-            const reader = new FileReader();
-      
-            reader.onload = function (e) {
-              document.getElementById('profilePreview').src = e.target.result;
-            };
-      
-            reader.readAsDataURL(input.files[0]); // Convert image to base64 URL
-          }
+      const userEmail = "jtrujillo42@tntech.edu"; // Replace dynamically later
+    
+      async function loadUserProfile() {
+        try {          console.log(userEmail);
+
+          const backendURL = 'http://localhost:8000';
+          const res = await fetch(`${backendURL}/user-profile?email=${encodeURIComponent(userEmail)}`);
+
+          if (!res.ok) throw new Error("Failed to load profile");
+    
+          const data = await res.json();
+          
+          const nameInput = document.querySelector('input[name="name"]');
+          nameInput.placeholder = data.name || 'Full Name';
+          nameInput.value = data.name || '';
+          document.querySelector('input[name="discord"]').value = data.discord || '';
+          document.querySelector('input[name="discord"]').placeholder = data.discord || '@Username';
+
+          document.querySelector('input[name="teams"]').value = data.teams || '';
+          document.querySelector('input[name="teams"]').placeholder = data.teams || '@Username';
+
+
+          const emailInput = document.querySelector('input[name="email"]');
+          emailInput.value = data.Email || 'johnSmith@domain.com';
+          emailInput.value = data.Email || '';
+
+
+          document.querySelector('input[name="phone"]').value = data.phone || '';
+          document.querySelector('input[name="phone"]').placeholder = data.phone || '123-456-7890';
+
+    
+          document.getElementById('profilePreview').src =
+            `/user-profile/photo?email=${encodeURIComponent(userEmail)}`;
+        } catch (err) {
+          alert("Error loading profile: " + err.message);
         }
-      </script>
+      }
+    
+      async function updateUserProfile() {
+        console.log("we in the function");
+        const backendURL = 'http://localhost:8000';
+
+        const payload = {
+          name: document.querySelector('input[name="name"]').value,
+          discord: document.querySelector('input[name="discord"]').value,
+          teams: document.querySelector('input[name="teams"]').value,
+          email: document.querySelector('input[name="email"]').value,
+          phone: document.querySelector('input[name="phone"]').value,
+        };
+    
+        try {
+          const res = await fetch(
+            `${backendURL}/user-profile/update`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            }
+          );
+    
+          if (!res.ok) throw new Error("Failed to update profile");
+    
+          alert("Profile updated successfully!");
+        } catch (err) {
+          alert("Error updating profile: " + err.message);
+        }
+      }
+    
+      function previewProfile(input) {
+        if (input.files && input.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.getElementById('profilePreview').src = e.target.result;
+          };
+          reader.readAsDataURL(input.files[0]);
+    
+          const formData = new FormData();
+          formData.append('profilePic', input.files[0]);
+          formData.append('email', document.querySelector('input[name="email"]').value);
+    
+          fetch('/user-profile/upload-photo', {
+            method: 'POST',
+            body: formData,
+          })
+            .then(res => res.json())
+            .then(() => alert("Image uploaded."))
+            .catch(err => alert("Failed to upload profile image."));
+        }
+      }
+    
+      window.addEventListener("DOMContentLoaded", () => {
+        loadUserProfile();
+        document
+          .querySelector("#btnUpdateProfile")
+          .addEventListener("click", updateUserProfile);
+      });
+    </script>
+    
+    
+    
       
   </body>
   
