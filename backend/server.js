@@ -181,7 +181,6 @@ app.get('/teams', (req, res, next) => {
     });
 });
 
-<<<<<<< Updated upstream
 // POST for creating a course
 app.post('/courses', (req, res, next) => {
     const { strInstructorID, strCourseName, strCourseNumber, strCourseSection, strCourseTerm, dtStartDate, dtEndDate } = req.body;
@@ -430,7 +429,8 @@ app.delete('/deleteGroup', (req, res, next) => {
         }
     });
 });
-=======
+
+
 app.get('/user-profile', (req, res) => {
     const email = req.query.email;
     if (!email) return res.status(400).json({ error: 'Email is required' });
@@ -525,11 +525,13 @@ app.post('/user-profile/update', (req, res) => {
       return res.status(400).json({ error: 'Email and image are required' });
     }
   
-    db.prepare(`
-      UPDATE tblUsers
-      SET strProfilePhoto = ?
-      WHERE Email = ?
-    `).run(buffer, email);
+    db.run(
+        `UPDATE tblUsers
+           SET ProfilePhoto = ?
+         WHERE Email = ?`,
+        [ buffer, email ]
+      );
+      
   
     res.json({ message: 'Profile photo uploaded successfully' });
   });
@@ -542,20 +544,27 @@ app.post('/user-profile/update', (req, res) => {
     const email = req.query.email;
     if (!email) return res.status(400).send('Missing email');
   
-    const row = db.prepare(`
-      SELECT strProfilePhoto FROM tblUsers WHERE Email = ?
-    `).get(email);
+    // Use db.get (callback) to fetch the BLOB column
+    db.get(
+      `SELECT ProfilePhoto FROM tblUsers WHERE Email = ?`,
+      [email],
+      (err, row) => {
+        if (err) {
+          console.error('[GET /user-profile/photo] DB error:', err);
+          return res.status(500).send('Database error');
+        }
+        // Check the correct property, ProfilePhoto
+        if (!row || !row.ProfilePhoto) {
+          return res.status(404).send('No profile image found');
+        }
   
-    if (!row || !row.strProfilePhoto) {
-      return res.status(404).send('No profile image found');
-    }
-  
-    // Assume JPEG (you can enhance this with file signature detection)
-    res.set('Content-Type', 'image/jpeg');
-    res.send(row.strProfilePhoto);
+        // Serve the raw BLOB with the right header
+        res.set('Content-Type', 'image/jpeg');
+        res.send(row.ProfilePhoto);
+      }
+    );
   });
   
->>>>>>> Stashed changes
 
 
 app.listen(HTTP_PORT,() => {

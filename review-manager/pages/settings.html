@@ -151,6 +151,8 @@
     </div>
   
     <script type="module" src="/src/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
       const userEmail = "jtrujillo42@tntech.edu"; // Replace dynamically later
     
@@ -184,7 +186,7 @@
 
     
           document.getElementById('profilePreview').src =
-            `/user-profile/photo?email=${encodeURIComponent(userEmail)}`;
+      `${backendURL}/user-profile/photo?email=${encodeURIComponent(userEmail)}`;
         } catch (err) {
           alert("Error loading profile: " + err.message);
         }
@@ -214,13 +216,23 @@
     
           if (!res.ok) throw new Error("Failed to update profile");
     
-          alert("Profile updated successfully!");
+          Swal.fire({
+                title: "Success!",
+                text: "Profile Updated Successfully!",
+                icon: "success"
+            });
         } catch (err) {
-          alert("Error updating profile: " + err.message);
+          Swal.fire({
+                title: "Oh, no you have an error!",
+                text:("Error updating profile: " + err.message),
+                icon: "error"
+            });
         }
       }
     
       function previewProfile(input) {
+        const backendURL = 'http://localhost:8000';
+
         if (input.files && input.files[0]) {
           const reader = new FileReader();
           reader.onload = function (e) {
@@ -232,7 +244,7 @@
           formData.append('profilePic', input.files[0]);
           formData.append('email', document.querySelector('input[name="email"]').value);
     
-          fetch('/user-profile/upload-photo', {
+          fetch(`${backendURL}/user-profile/upload-photo`, {
             method: 'POST',
             body: formData,
           })
@@ -254,5 +266,5 @@
     
       
   </body>
-  
+
 </html>
