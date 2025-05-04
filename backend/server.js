@@ -9,9 +9,8 @@ const datNow = new Date();
 const upload = multer({ storage: multer.memoryStorage() }); // Use in-memory storage for BLOB
 const path = require('path');
 
-const dbSource = "review.db"
 const HTTP_PORT = 8000
-const db = new sqlite3.Database(dbSource)
+const db = new sqlite3.Database("./review.db")
 
 var app = express()
 const corsOptions = {
@@ -29,6 +28,7 @@ const transporter = nodemailer.createTransport({
         user: 'jaydon.medhurst@ethereal.email',
         pass: 'dryJ2czqz7cETXqws8'
     }
+    
 });
 
 /* 
@@ -44,6 +44,9 @@ UserID INTEGER PRIMARY KEY AUTOINCREMENT,
 app.post('/studentRegister', (req, res, next) => {
     const { strFullName, strEmail, strPassword, strConfirmPass, strClassCode } = req.body;
 
+    console.log(strPassword)
+    console.log(strConfirmPass)
+
     if (strPassword != strConfirmPass) {
         res.status(401).json({message:"Passwords Must Match"})
     }
@@ -54,6 +57,8 @@ app.post('/studentRegister', (req, res, next) => {
     const arrName = strFullName.split(" ");
     const strFirstName = arrName[0];
     const strLastName = arrName[1];
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
 
     if (!strClassCode) {
         const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
@@ -71,6 +76,25 @@ app.post('/studentRegister', (req, res, next) => {
                 return res.status(201).json({ message: 'User registered successfully' });
             }
         })
+        const mailOptions = {
+            from: '"Review Manager" <noreply@reviewmanager.com>',
+            to: strEmail,
+            subject: 'Your Registration Code',
+            text: `Hi ${strFirstName},\n\nYour registration code is: ${verificationCode}\n\nThanks,\nReview Manager Team`,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+                return res.status(500).json({ message: 'User created, but failed to send verification email' });
+            }
+
+            console.log('Verification email sent:', nodemailer.getTestMessageUrl(info));
+            return res.status(201).json({
+                message: 'User registered successfully. Check your email for the verification code.',
+                previewUrl: nodemailer.getTestMessageUrl(info), // only works with Ethereal
+            });
+        });
     }
     else {
         //no class code for now, that's a bigger issue for later

@@ -178,23 +178,23 @@
         </form>
         
         <!-- Student Registration -->
-        <form id="frmStudentRegister" class="mt-24 hidden" action="/studentRegister" method="POST">
+        <form id="frmStudentRegister" class="mt-24 hidden">
             <h1 class="text-xl font-bold font-sans text-white">Student Registration</h1>
             <fieldset class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">   
                 <label class="fieldset-label">First/Last Name</label>
-                <input type="text" class="input input-accent" placeholder="John Smith" />
+                <input type="text" name="strFullName" class="input input-accent" placeholder="John Smith" />
 
                 <label class="fieldset-label">Email</label>
-                <input type="email" class="input input-accent validator" placeholder="Email" />
+                <input type="email" name="strEmail" class="input input-accent validator" placeholder="Email" />
                 
                 <label class="fieldset-label">Password</label>
-                <input type="password" class="input input-accent " placeholder="Password" />
+                <input type="password" name="strPassword" class="input input-accent " placeholder="Password" />
             
                 <label class="fieldset-label">Confirm Password</label>
-                <input type="password" class="input input-accent " placeholder="Confirm Password" />
+                <input type="password" name="strConfirmPass" class="input input-accent " placeholder="Confirm Password" />
                 
                 <label class="fieldset-label">Class Code (optional)</label>
-                <input type="text" class="input input-accent " placeholder="ex: 003885" />
+                <input type="text" name="strClassCode" class="input input-accent " placeholder="ex: 003885" />
                 
                 <button type="submit" id="btnStudentRegister" class="btn btn-primary text-white mt-4">Register</button>
               </fieldset>
@@ -323,5 +323,39 @@
             $('#frmInstructorRegister').hide();
         });
       </script>
+      <!--Javascript for sending info to the backend-->
+      <script>
+        document.getElementById('frmStudentRegister').addEventListener('submit', async function (e) {
+          e.preventDefault(); // Prevent the form from navigating away
+        
+          const form = e.target;
+          const formData = new FormData(form);
+        
+          const data = {
+            strFullName: formData.get('strFullName'),
+            strEmail: formData.get('strEmail'),
+            strPassword: formData.get('strPassword'),
+            strConfirmPass: formData.get('strConfirmPass'),
+            strClassCode: formData.get('strClassCode')
+          };
+        
+          try {
+            const response = await fetch('/studentRegister', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+        
+            const result = await response.text();
+            alert(result); // Show success message or redirect
+          } catch (err) {
+            console.error('Submission failed:', err);
+            alert('Failed to register');
+          }
+        });
+        </script>
+        
 </body>
 </html>
