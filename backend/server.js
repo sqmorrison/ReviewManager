@@ -71,7 +71,7 @@ app.post('/studentRegister', (req, res, next) => {
     if (!strClassCode) {
         const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
 
-        dataBase.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
+        db.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     res.status(400).json({ error: 'Email already exists' });
@@ -90,7 +90,7 @@ app.post('/studentRegister', (req, res, next) => {
         //later need to implement a way to immediately connect a student to a class upon registration
         const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
 
-        dataBase.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
+        db.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     res.status(400).json({ error: 'Email already exists' });

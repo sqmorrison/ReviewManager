@@ -328,12 +328,12 @@
             });
         
             const result = await response.text();
-            alert(result); // Show success message or redirect
             $('#frmStudentRegister').hide();
             $('#frmStudentSuccessPage').removeClass("hidden").addClass("flex flex-col items-center justify-center").fadeIn();
           } catch (err) {
             console.error('Submission failed:', err);
-            alert('Failed to register');
+            //make this a sweet alert
+            alert('Failed to register, please make sure all fields are filled out correctly');
           }
         });
         </script>
