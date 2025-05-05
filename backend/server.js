@@ -111,9 +111,11 @@ app.post('/login', (req, res, next) => {
 
   db.get("SELECT * FROM tblUsers WHERE Email = ?", [strEmail], (err, user) => {
     if (err) return res.status(500).send('Server error');
-    if (!user || !bcrypt.compareSync(strPassword, user.passwordHash)) {
+    if (!user || !bcrypt.compareSync(strPassword, user.Password)) {
       return res.status(401).send('Invalid credentials');
     }
+      
+    console.log("successful login")
 
     // Generate MFA code and expiration
     const mfaCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -126,7 +128,7 @@ app.post('/login', (req, res, next) => {
 
     db.run(insertMFA, [user.UserID, mfaCode, expiresAt], function (err) {
       if (err) return res.status(500).send('Failed to save MFA code');
-
+        console.log("sending mfa email")
       transporter.sendMail({
         from: 'no-reply@jqreview.com',
         to: strEmail,
@@ -136,8 +138,9 @@ app.post('/login', (req, res, next) => {
         if (err) return res.status(500).send('Failed to send MFA email');
 
         // Save UserID temporarily in session
-        req.session.tempUserID = user.UserID;
-        res.redirect('/mfa'); // MFA input form page
+          req.session.tempUserID = user.UserID;
+          res.status(200).json({ success: true });
+
       });
     });
   });
