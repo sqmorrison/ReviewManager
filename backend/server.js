@@ -290,6 +290,50 @@ app.post('/courses', (req, res, next) => {
     });
 });
 
+app.get('/course-roster', (req, res) => {
+    console.log("[DEBUG] /course-roster hit with query:", req.query);
+    const courseId = parseInt(req.query.courseId);
+  
+    if (!courseId) {
+      return res.status(400).json({ error: "Missing or invalid courseId" });
+    }
+  
+    const query = `
+      SELECT 
+        tblUsers.FirstName || ' ' || tblUsers.LastName AS FullName,
+        tblUsers.Email,
+        tblEnrollments.Role,
+        tblSocials.strDiscord,
+        tblSocials.strTeams,
+        tblSocials.strPhone,
+        tblUsers.ProfilePhoto
+      FROM tblEnrollments
+      JOIN tblUsers ON tblEnrollments.UserID = tblUsers.UserID
+      LEFT JOIN tblSocials ON tblUsers.Email = tblSocials.UserEmail
+      WHERE tblEnrollments.CourseID = ?
+    `;
+  
+    db.all(query, [courseId], (err, rows) => {
+      if (err) {
+        console.error("[ERROR] /course-roster:", err.message);
+        return res.status(500).json({ error: "Database query failed" });
+      }
+  
+      const formatted = rows.map(row => ({
+        ...row,
+        strProfilePhoto: row.ProfilePhoto
+          ? `data:image/jpeg;base64,${row.ProfilePhoto.toString('base64')}`
+          : null
+      }));
+  
+      
+  
+      res.json(formatted);
+    });
+  });
+  
+
+
 // GET for getting all course groups for a specific instructor
 // assuming that the landing page for instructors simply shows all teams (tblCourseGroups) rather than all courses (tblCourses)
 app.get('/instructorTeams', (req, res, next) => {
