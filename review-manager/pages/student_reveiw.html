@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review</title>
+</head>
+<body>
+    <h1>Team Review</h1>
+    <form id="reviewForm">
+        <!-- Team Selection -->
+        <div class="form-group">
+            <label for="teamSelect">Select Your Team:</label>
+            <select id="teamSelect" name="team">
+                <option value="" disabled selected>Select a team</option>
+            </select>
+        </div>
+
+        <!-- Team Member Selection -->
+        <div class="form-group">
+            <label for="memberSelect">Select a Team Member:</label>
+            <select id="memberSelect" name="member" disabled>
+                <option value="" disabled selected>Select a member</option>
+            </select>
+        </div>
+
+        <!-- Effort Rating -->
+        <div class="form-group">
+            <label for="effortRating">Rate Their Effort (1-10):</label>
+            <div id="effortRating">
+                <!-- Radio buttons for rating -->
+                <label><input type="radio" name="effortRating" value="1"> 1</label>
+                <label><input type="radio" name="effortRating" value="2"> 2</label>
+                <label><input type="radio" name="effortRating" value="3"> 3</label>
+                <label><input type="radio" name="effortRating" value="4"> 4</label>
+                <label><input type="radio" name="effortRating" value="5"> 5</label>
+                <label><input type="radio" name="effortRating" value="6"> 6</label>
+                <label><input type="radio" name="effortRating" value="7"> 7</label>
+                <label><input type="radio" name="effortRating" value="8"> 8</label>
+                <label><input type="radio" name="effortRating" value="9"> 9</label>
+                <label><input type="radio" name="effortRating" value="10"> 10</label>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+            <label for="notes">Notes:</label>
+            <textarea id="notes" name="notes" rows="4" placeholder="Add any additional comments here..."></textarea>
+        </div>
+
+        <button type="submit">Submit Review</button>
+    </form>
+
+    <script>
+        const teamSelect = document.getElementById("teamSelect");
+        const memberSelect = document.getElementById("memberSelect");
+
+        // Fetch teams and populate the team dropdown
+        fetch('http://localhost:8000/teams') // Adjust the endpoint if necessary
+            .then(response => response.json())
+            .then(data => {
+                // Assuming `data` is an object where keys are team names and values are arrays of members
+                for (const team in data) {
+                    const option = document.createElement("option");
+                    option.value = team;
+                    option.textContent = team.charAt(0).toUpperCase() + team.slice(1);
+                    teamSelect.appendChild(option);
+                }
+            })
+            .catch(error => console.error('Error fetching team data:', error));
+
+        // Populate team members dropdown based on selected team
+        teamSelect.addEventListener("change", function () {
+            const selectedTeam = teamSelect.value;
+            memberSelect.innerHTML = '<option value="" disabled selected>Select a member</option>'; // Reset options
+
+            fetch('http://localhost:8000/teams') // Adjust the endpoint if necessary
+                .then(response => response.json())
+                .then(data => {
+                    if (data[selectedTeam]) {
+                        data[selectedTeam].forEach(member => {
+                            const option = document.createElement("option");
+                            option.value = member;
+                            option.textContent = member;
+                            memberSelect.appendChild(option);
+                        });
+                        memberSelect.disabled = false;
+                    } else {
+                        memberSelect.disabled = true;
+                    }
+                })
+                .catch(error => console.error('Error fetching team members:', error));
+        });
+    </script>
+</body>
+</html>
