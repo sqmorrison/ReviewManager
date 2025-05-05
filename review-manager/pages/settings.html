@@ -145,6 +145,9 @@
               <div class="card-actions justify-center mt-4 w-full">
                 <button type="button" id="btnUpdateProfile" class="btn btn-primary w-full">Update Information</button>
               </div>
+              <div class="card-actions justify-center mt-8 w-full">
+                <button type="button" id="btnDeleteProfile" class="btn btn-primary w-full">Delete Account</button>
+              </div>
             </div>
           </div>
         </div>
@@ -255,11 +258,59 @@
         }
       }
     
+      async function deleteAccount() {
+        const backendURL = "http://localhost:8000";
+
+        try {
+            const res = await fetch(`${backendURL}/user-profile/delete`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail }),
+            });
+
+            if (!res.ok) throw new Error("Failed to delete account");
+
+            Swal.fire({
+                title: "Deleted!",
+                text: "Your account has been deleted.",
+                icon: "success",
+            }).then(() => {
+                // Redirect to login or landing page after deletion
+                window.location.href = "/pages/login.html";
+            });
+        } catch (err) {
+            Swal.fire({
+                title: "Error!",
+                text: "There was an issue deleting your account: " + err.message,
+                icon: "error",
+            });
+        }
+      }
+
       window.addEventListener("DOMContentLoaded", () => {
         loadUserProfile();
         document
           .querySelector("#btnUpdateProfile")
           .addEventListener("click", updateUserProfile);
+
+        document
+          .querySelector("#btnDeleteProfile")
+          .addEventListener("click", () => {
+              Swal.fire({
+                  title: "Are you sure?",
+                  text: "This action will permanently delete your account and cannot be undone.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#d33",
+                  cancelButtonColor: "#3085d6",
+                  confirmButtonText: "Yes, delete it!",
+                  cancelButtonText: "Cancel",
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      deleteAccount();
+                  }
+              });
+          });
       });
     </script>
     
