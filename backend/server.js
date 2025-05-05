@@ -171,10 +171,10 @@ app.get('/teams', (req, res, next) => {
     }
 
     const strCommand = `
-        SELECT tblTeams.team_id, tblTeams.name, tblTeams.description, tblRoles.role
-        FROM tblRoles
-        JOIN tblTeams ON tblTeams.team_id = tblRoles.team_id
-        JOIN tblUsers ON tblUsers.UserID = tblRoles.user_id
+        SELECT tblCourseGroups.GroupID, tblCourseGroups.GroupName
+        FROM tblCourseGroups
+        JOIN tblGroupMembers ON tblCourseGroups.GroupID = tblGroupMembers.GroupID
+        JOIN tblUsers ON tblGroupMembers.UserID = tblUsers.UserID
         WHERE tblUsers.Email = ?
     `;
 
