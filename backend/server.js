@@ -181,7 +181,7 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/teams', (req, res, next) => {
-    const strEmail = req.query.email.trim().toLowerCase();
+    const strEmail = req.query.email?.trim().toLowerCase();
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(strEmail)) {
@@ -189,31 +189,59 @@ app.get('/teams', (req, res, next) => {
     }
 
     const strCommand = `
-        SELECT tblCourseGroups.GroupID, tblCourseGroups.GroupName
-        FROM tblCourseGroups
-        JOIN tblGroupMembers ON tblCourseGroups.GroupID = tblGroupMembers.GroupID
-        JOIN tblUsers ON tblGroupMembers.UserID = tblUsers.UserID
-        WHERE tblUsers.Email = ?
+        SELECT 
+            tblCourses.CourseID,
+            tblCourses.CourseName,
+            tblCourses.CourseSection,
+            tblEnrollments.Role,
+            tblUsers.FirstName,
+            tblUsers.LastName
+        FROM tblEnrollments
+        JOIN tblUsers ON tblEnrollments.UserID = tblUsers.UserID
+        JOIN tblCourses ON tblEnrollments.CourseID = tblCourses.CourseID
+        WHERE LOWER(tblUsers.Email) = ?
     `;
 
-    db.all(strCommand, [strEmail], function (err, rows) {
+    db.all(strCommand, [strEmail], (err, rows) => {
         if (err) {
-            console.log(err);
-            res.status(400).json({
+            console.error("[ERROR] /teams DB error:", err.message);
+            return res.status(500).json({
                 status: "error",
                 message: err.message
             });
-        } else {
-            const instructor = rows.filter(r => r.role === 'instructor');
-            const student = rows.filter(r => r.role === 'student');
-            res.json({
-                status: "success",
-                instructor,
-                student
-            });
         }
+
+        const instructor = rows
+            .filter(row => row.Role?.toLowerCase() === 'instructor')
+            .map(row => ({
+                team_id: row.CourseID,
+                name: row.CourseName,
+                description: `Section ${row.CourseSection}`
+            }));
+
+        const student = rows
+            .filter(row => row.Role?.toLowerCase() === 'student')
+            .map(row => ({
+                team_id: row.CourseID,
+                name: row.CourseName,
+                description: `Section ${row.CourseSection}`
+            }));
+
+        const fullName = rows.length > 0
+            ? `${rows[0].FirstName} ${rows[0].LastName}`
+            : null;
+
+        res.json({
+            status: "success",
+            fullName,
+            instructor,
+            student
+        });
     });
 });
+
+
+
 
 // POST for creating a course
 app.post('/courses', (req, res, next) => {
