@@ -8,17 +8,27 @@ const multer = require('multer');
 const datNow = new Date();
 const upload = multer({ storage: multer.memoryStorage() }); // Use in-memory storage for BLOB
 const path = require('path');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
 
 const HTTP_PORT = 8000
 const db = new sqlite3.Database("./review.db")
 
-var app = express()
+var app = express();
 const corsOptions = {
     origin: 'http://localhost:3000', // Replace with frontend's URL
     credentials: true // Allow credentials (cookies, etc.)
 };
-app.use(cors(corsOptions))
-app.use(express.json())
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+  secret: 'your_secret_key', // Use env variable in production
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false, httpOnly: true, maxAge: 15 * 60 * 1000 } // Adjust for HTTPS in prod
+}));
+
 
 //temporary no reply email for multifactor auth
 const transporter = nodemailer.createTransport({
@@ -30,16 +40,6 @@ const transporter = nodemailer.createTransport({
     }
     
 });
-
-/* 
-UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-    FirstName TEXT NOT NULL,
-    LastName TEXT NOT NULL,
-    Email TEXT UNIQUE NOT NULL,
-    Password TEXT NOT NULL,
-    CreationDateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    LastLoginDateTime DATETIME
-*/
 
 app.post('/studentRegister', (req, res, next) => {
     const { strFullName, strEmail, strPassword, strConfirmPass, strClassCode } = req.body;
@@ -58,12 +58,10 @@ app.post('/studentRegister', (req, res, next) => {
     const strFirstName = arrName[0];
     const strLastName = arrName[1];
 
-    const verificationCode = Math.floor(100000 + Math.random() * 900000);
-
     if (!strClassCode) {
         const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
 
-        dataBase.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
+        db.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     res.status(400).json({ error: 'Email already exists' });
@@ -76,32 +74,13 @@ app.post('/studentRegister', (req, res, next) => {
                 return res.status(201).json({ message: 'User registered successfully' });
             }
         })
-        const mailOptions = {
-            from: '"Review Manager" <noreply@reviewmanager.com>',
-            to: strEmail,
-            subject: 'Your Registration Code',
-            text: `Hi ${strFirstName},\n\nYour registration code is: ${verificationCode}\n\nThanks,\nReview Manager Team`,
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Error sending email:', error);
-                return res.status(500).json({ message: 'User created, but failed to send verification email' });
-            }
-
-            console.log('Verification email sent:', nodemailer.getTestMessageUrl(info));
-            return res.status(201).json({
-                message: 'User registered successfully. Check your email for the verification code.',
-                previewUrl: nodemailer.getTestMessageUrl(info), // only works with Ethereal
-            });
-        });
     }
     else {
         //no class code for now, that's a bigger issue for later
         //later need to implement a way to immediately connect a student to a class upon registration
         const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
 
-        dataBase.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
+        db.run(strCommand, [strFirstName, strLastName, strEmail, strHashedPassword], function (err) {
             if (err) {
                 if (err.message.includes('UNIQUE constraint failed')) {
                     res.status(400).json({ error: 'Email already exists' });
@@ -119,42 +98,71 @@ app.post('/studentRegister', (req, res, next) => {
 
 app.post('/login', (req, res, next) => {
     const { strEmail, strPassword } = req.body;
-    db.get("SELECT * FROM users WHERE Email = ?", [strEmail], (err, user) => {
-        if (!user || !bcrypt.compareSync(strPassword, user.passwordHash)) {
-            return res.send('Invalid credentials');
-        }
 
-        // Generate 6-digit code and expiration
-        const mfaCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const expires = Date.now() + 5 * 60 * 1000;
+  db.get("SELECT * FROM tblUsers WHERE Email = ?", [strEmail], (err, user) => {
+    if (err) return res.status(500).send('Server error');
+    if (!user || !bcrypt.compareSync(strPassword, user.Password)) {
+      return res.status(401).send('Invalid credentials');
+    }
+      
+    // Generate MFA code and expiration
+    const mfaCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 mins from now
 
-        db.run("UPDATE users SET mfaCode = ?, mfaExpires = ? WHERE email = ?", [mfaCode, expires, email]);
+    const insertMFA = `
+      INSERT INTO tblMFA (UserID, Code, Expiration)
+      VALUES (?, ?, ?)
+    `;
 
+    db.run(insertMFA, [user.UserID, mfaCode, expiresAt], function (err) {
+      if (err) return res.status(500).send('Failed to save MFA code');
+      transporter.sendMail({
+        from: 'no-reply@jqreview.com',
+        to: strEmail,
+        subject: 'Your MFA Code',
+        text: `Your MFA code is: ${mfaCode}`
+      }, (err) => {
+        if (err) return res.status(500).send('Failed to send MFA email');
 
-        transporter.sendMail({
-            from: 'no-reply@example.com',
-            to: email,
-            subject: 'Your MFA Code',
-            text: `Your MFA code is: ${mfaCode}`
-          }, () => {
-            req.session.tempUser = email;
-            res.redirect('/mfa');
-          });
-    })
+          // Save UserID temporarily in session
+          req.session.tempUserEmail = user.Email;
+          res.status(200).json({ success: true });
+      });
+    });
+  });
 })
   
 app.post('/mfa', (req, res) => {
-    const { token } = req.body;
-    const email = req.session.tempUser;
-
-    db.get("SELECT * FROM tblUsers WHERE email = ?", [email], (err, user) => {
-        if (user && user.mfaCode === token && Date.now() < user.mfaExpires) {
-        req.session.user = email;
-        delete req.session.tempUser;
-        res.redirect('/landing.html');
-        } else {
-        res.send("Invalid or expired MFA code.");
-        }
+    const { mfaCode } = req.body;
+    const tempEmail = req.session.tempUserEmail;
+  
+    if (!tempEmail) return res.status(401).send('Session expired. Please log in again.');
+  
+    db.get("SELECT m.* FROM tblMFA m JOIN tblUsers u ON m.UserID = u.UserID WHERE u.Email = ? AND m.Status = 'active' AND m.Expiration > CURRENT_TIMESTAMP ORDER BY m.Expiration DESC LIMIT 1;", [tempEmail], (err, user) => {
+        if (err || !user) return res.status(500).send('Server error');
+        console.log(user)
+      if (user.Code !== mfaCode || new Date(user.Expiration) < new Date()) {
+        return res.status(401).send('Invalid or expired MFA code');
+      }
+  
+      // MFA successful: finalize login
+      req.session.user = tempEmail; // Establish full session
+        delete req.session.tempUser; // Remove temp session
+        
+        const useCommand = `
+            UPDATE tblMFA
+            SET Status = 'used'
+            WHERE MFAID = (
+                SELECT m.MFAID
+                FROM tblMFA m
+                JOIN tblUsers u ON m.UserID = u.UserID
+                WHERE u.Email = ? AND m.Status = 'active'
+                ORDER BY m.Expiration DESC
+                LIMIT 1
+            )
+            `;
+      db.run(useCommand, [tempEmail]);
+      res.status(200).json({ success: true });
     });
 });
 
