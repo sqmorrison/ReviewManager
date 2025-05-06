@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const {v4:uuidv4} = require('uuid')
+const { v4: uuidv4 } = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
@@ -38,7 +38,7 @@ const transporter = nodemailer.createTransport({
         user: 'jaydon.medhurst@ethereal.email',
         pass: 'dryJ2czqz7cETXqws8'
     }
-    
+
 });
 
 app.post('/studentRegister', (req, res, next) => {
@@ -48,7 +48,7 @@ app.post('/studentRegister', (req, res, next) => {
     console.log(strConfirmPass)
 
     if (strPassword != strConfirmPass) {
-        res.status(401).json({message:"Passwords Must Match"})
+        res.status(401).json({ message: "Passwords Must Match" })
     }
     //hash the password before it can be stored on the database
     const strHashedPassword = bcrypt.hashSync(strPassword, 10);
@@ -96,6 +96,106 @@ app.post('/studentRegister', (req, res, next) => {
     }
 })
 
+app.post('/instructorRegister', (req, res, next) => {
+    const { strInFullName, strInEmail, strInPass, strInConfPass } = req.body;
+
+    if (strInPass != strInConfPass) {
+        res.status(401).json({ message: "Passwords Must Match" })
+    }
+
+    //hash the password before it can be stored on the database
+    const strHashedPassword = bcrypt.hashSync(strInPass, 10);
+
+    //split the full name into first and last name
+    const arrName = strInFullName.split(" ");
+    const strFirstName = arrName[0];
+    const strLastName = arrName[1];
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000); // mfa
+
+    const strCommand = 'INSERT INTO tblUsers (FirstName, LastName, Email, Password) VALUES (?,?,?,?)';
+
+    db.run(strCommand, [strFirstName, strLastName, strInEmail, strHashedPassword], function (err) {
+        if (err) {
+            if (err.message.includes('UNIQUE constraint failed')) {
+                res.status(400).json({ error: 'Email already exists' });
+            }
+            else {
+                res.status(500).json({ message: 'Database error', details: err.message });
+            }
+        }
+        else {
+            return res.status(201).json({ message: 'User registered successfully' });
+        }
+    })
+});
+
+app.post('/instructorCourseRegister', (req, res, next) => {
+    const { strEmail, arrCourses } = req.body;
+
+    arrCourses.forEach(course => {
+        const strCommand = `
+            INSERT INTO tblCourses 
+            (CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, JoinCode) 
+            VALUES (?,?,?,?,?,?,?)
+        `;
+
+        const intJoinCode = Math.floor(100000 + Math.random() * 900000);
+
+        // Insert the course into tblCourses
+        db.run(
+            strCommand,
+            [
+                course.strCourseName,
+                course.strCourseNumber,
+                course.strCourseSection,
+                course.strCourseTerm,
+                course.dtStartDate,
+                course.dtEndDate,
+                intJoinCode
+            ],
+            function (err) {
+                if (err) {
+                    console.error('[ERROR] Insert into tblCourses failed:', err.message);
+                    return res.status(500).json({ message: 'Database error', details: err.message });
+                }
+
+                // Retrieve the last inserted CourseID
+                const courseID = this.lastID;
+
+                const strCommand2 = 'SELECT UserID FROM tblUsers WHERE Email = ?';
+                const strCommand3 = 'INSERT INTO tblEnrollments (UserID, CourseID, Role) VALUES (?,?,?)';
+
+                // Get the UserID of the instructor
+                db.get(strCommand2, [strEmail], function (err, row) {
+                    if (err) {
+                        console.error('[ERROR] Select UserID failed:', err.message);
+                        return res.status(500).json({ message: 'Database error', details: err.message });
+                    }
+
+                    if (!row) {
+                        return res.status(404).json({ message: 'Instructor not found' });
+                    }
+
+                    const strUserID = row.UserID;
+
+                    // Insert the enrollment into tblEnrollments
+                    db.run(strCommand3, [strUserID, courseID, "Instructor"], function (err) {
+                        if (err) {
+                            console.error('[ERROR] Insert into tblEnrollments failed:', err.message);
+                            return res.status(500).json({ message: 'Database error', details: err.message });
+                        }
+
+                        console.log(`Course ${course.strCourseName} registered successfully for instructor ${strEmail}`);
+                    });
+                });
+            }
+        );
+    });
+
+    res.status(201).json({ message: 'Courses registered successfully' });
+});
+
 app.post('/login', (req, res, next) => {
     const { strEmail, strPassword } = req.body;
 
@@ -114,6 +214,7 @@ app.post('/login', (req, res, next) => {
       VALUES (?, ?, ?)
     `;
 
+
     db.run(insertMFA, [user.UserID, mfaCode, expiresAt], function (err) {
       if (err) return res.status(500).send('Failed to save MFA code');
       transporter.sendMail({
@@ -131,7 +232,7 @@ app.post('/login', (req, res, next) => {
     });
   });
 })
-  
+
 app.post('/mfa', (req, res) => {
     const { mfaCode } = req.body;
     const tempEmail = req.session.tempUserEmail;
@@ -301,11 +402,11 @@ app.post('/courses', (req, res, next) => {
 app.get('/course-roster', (req, res) => {
     console.log("[DEBUG] /course-roster hit with query:", req.query);
     const courseId = parseInt(req.query.courseId);
-  
+
     if (!courseId) {
-      return res.status(400).json({ error: "Missing or invalid courseId" });
+        return res.status(400).json({ error: "Missing or invalid courseId" });
     }
-  
+
     const query = `
       SELECT 
         tblUsers.FirstName || ' ' || tblUsers.LastName AS FullName,
@@ -320,26 +421,26 @@ app.get('/course-roster', (req, res) => {
       LEFT JOIN tblSocials ON tblUsers.Email = tblSocials.UserEmail
       WHERE tblEnrollments.CourseID = ?
     `;
-  
+
     db.all(query, [courseId], (err, rows) => {
-      if (err) {
-        console.error("[ERROR] /course-roster:", err.message);
-        return res.status(500).json({ error: "Database query failed" });
-      }
-  
-      const formatted = rows.map(row => ({
-        ...row,
-        strProfilePhoto: row.ProfilePhoto
-          ? `data:image/jpeg;base64,${row.ProfilePhoto.toString('base64')}`
-          : null
-      }));
-  
-      
-  
-      res.json(formatted);
+        if (err) {
+            console.error("[ERROR] /course-roster:", err.message);
+            return res.status(500).json({ error: "Database query failed" });
+        }
+
+        const formatted = rows.map(row => ({
+            ...row,
+            strProfilePhoto: row.ProfilePhoto
+                ? `data:image/jpeg;base64,${row.ProfilePhoto.toString('base64')}`
+                : null
+        }));
+
+
+
+        res.json(formatted);
     });
-  });
-  
+});
+
 
 
 // GET for getting all course groups for a specific instructor
@@ -539,7 +640,7 @@ app.get('/user-profile', (req, res) => {
             return res.status(500).json({ error: "Database error" });
         }
         console.log("[DEBUG] Query result:", user);
-        
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -549,120 +650,120 @@ app.get('/user-profile', (req, res) => {
             FROM tblSocials
             WHERE UserEmail = ?
           `, [email], (err2, socials) => {
-              if (err2) {
-                  console.error("[DEBUG] Socials query error:", err2);
-                  return res.status(500).json({ error: "Socials query failed" });
-              }
-          
-              res.json({
-                  ...user,
-                  discord: socials?.strDiscord || '',
-                  teams: socials?.strTeams || '',
-                  phone: socials?.strPhone || ''
-              });
-          });
+            if (err2) {
+                console.error("[DEBUG] Socials query error:", err2);
+                return res.status(500).json({ error: "Socials query failed" });
+            }
+
+            res.json({
+                ...user,
+                discord: socials?.strDiscord || '',
+                teams: socials?.strTeams || '',
+                phone: socials?.strPhone || ''
+            });
+        });
     });
 });
-  
+
 
 app.post('/user-profile/update', (req, res) => {
     console.log('[POST] /user-profile/update hit with body:', req.body);
     const { name, email, phone, discord, teams } = req.body;
     if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+        return res.status(400).json({ error: 'Email is required' });
     }
-  
-    const [ firstName, lastName = '' ] = name.trim().split(' ');
-  
+
+    const [firstName, lastName = ''] = name.trim().split(' ');
+
     // First, update tblUsers
     db.run(
-      `UPDATE tblUsers
+        `UPDATE tblUsers
          SET FirstName = ?, LastName = ?
        WHERE Email = ?`,
-      [ firstName, lastName, email ],
-      function (err) {
-        if (err) {
-          console.error('[UPDATE tblUsers] error:', err);
-          return res.status(500).json({ error: 'Failed to update user' });
-        }
-  
-        // Then upsert into tblSocials
-        // (you need a UNIQUE(UserEmail) constraint for ON CONFLICT to work)
-        db.run(
-            `UPDATE tblSocials
+        [firstName, lastName, email],
+        function (err) {
+            if (err) {
+                console.error('[UPDATE tblUsers] error:', err);
+                return res.status(500).json({ error: 'Failed to update user' });
+            }
+
+            // Then upsert into tblSocials
+            // (you need a UNIQUE(UserEmail) constraint for ON CONFLICT to work)
+            db.run(
+                `UPDATE tblSocials
                SET strDiscord = ?,
                    strTeams   = ?,
                    strPhone   = ?
              WHERE UserEmail = ?`,
-            [ discord, teams, phone, email ],
-            function(err) {
-              if (err) {
-                console.error('[UPDATE tblSocials] error:', err);
-                return res.status(500).json({ error: 'Failed to update socials' });
-              }
-              // If you want, you can check this.changes to see if any row was updated
-              if (this.changes === 0) {
-                // No row matched—handle as you like (e.g. return 404 or insert a new one)
-                console.warn('[UPDATE tblSocials] no row found to update for', email);
-              }
-              res.json({ message: 'Profile updated successfully' });
-            }
-          );
-      }
+                [discord, teams, phone, email],
+                function (err) {
+                    if (err) {
+                        console.error('[UPDATE tblSocials] error:', err);
+                        return res.status(500).json({ error: 'Failed to update socials' });
+                    }
+                    // If you want, you can check this.changes to see if any row was updated
+                    if (this.changes === 0) {
+                        // No row matched—handle as you like (e.g. return 404 or insert a new one)
+                        console.warn('[UPDATE tblSocials] no row found to update for', email);
+                    }
+                    res.json({ message: 'Profile updated successfully' });
+                }
+            );
+        }
     );
-  });
-  
-  
-  app.post('/user-profile/upload-photo', upload.single('profilePic'), (req, res) => {
+});
+
+
+app.post('/user-profile/upload-photo', upload.single('profilePic'), (req, res) => {
     const email = req.body.email;
     const buffer = req.file?.buffer;
-  
+
     if (!email || !buffer) {
-      return res.status(400).json({ error: 'Email and image are required' });
+        return res.status(400).json({ error: 'Email and image are required' });
     }
-  
+
     db.run(
         `UPDATE tblUsers
            SET ProfilePhoto = ?
          WHERE Email = ?`,
-        [ buffer, email ]
-      );
-      
-  
+        [buffer, email]
+    );
+
+
     res.json({ message: 'Profile photo uploaded successfully' });
-  });
-  
-  /**
-   * GET /user-profile/photo
-   * Serve image BLOB with appropriate content-type
-   */
-  app.get('/user-profile/photo', (req, res) => {
+});
+
+/**
+ * GET /user-profile/photo
+ * Serve image BLOB with appropriate content-type
+ */
+app.get('/user-profile/photo', (req, res) => {
     const email = req.query.email;
     if (!email) return res.status(400).send('Missing email');
-  
+
     // Use db.get (callback) to fetch the BLOB column
     db.get(
-      `SELECT ProfilePhoto FROM tblUsers WHERE Email = ?`,
-      [email],
-      (err, row) => {
-        if (err) {
-          console.error('[GET /user-profile/photo] DB error:', err);
-          return res.status(500).send('Database error');
+        `SELECT ProfilePhoto FROM tblUsers WHERE Email = ?`,
+        [email],
+        (err, row) => {
+            if (err) {
+                console.error('[GET /user-profile/photo] DB error:', err);
+                return res.status(500).send('Database error');
+            }
+            // Check the correct property, ProfilePhoto
+            if (!row || !row.ProfilePhoto) {
+                return res.status(404).send('No profile image found');
+            }
+
+            // Serve the raw BLOB with the right header
+            res.set('Content-Type', 'image/jpeg');
+            res.send(row.ProfilePhoto);
         }
-        // Check the correct property, ProfilePhoto
-        if (!row || !row.ProfilePhoto) {
-          return res.status(404).send('No profile image found');
-        }
-  
-        // Serve the raw BLOB with the right header
-        res.set('Content-Type', 'image/jpeg');
-        res.send(row.ProfilePhoto);
-      }
     );
-  });
-  
+});
 
 
-app.listen(HTTP_PORT,() => {
-    console.log('App listening on',HTTP_PORT)
+
+app.listen(HTTP_PORT, () => {
+    console.log('App listening on', HTTP_PORT)
 })
