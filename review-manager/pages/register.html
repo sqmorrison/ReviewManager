@@ -6,7 +6,7 @@
     <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <title>Register</title>
 </head>
-<body class="bg-radial from-secondary to-accent h-screen">
+<body class="bg-radial from-secondary to-accent h-screen overflow-x-hidden">
     <!--Navbar for website splash page, login page, register-->
     <div class="navbar bg-accent shadow-sm">
         <div class="navbar-start">
@@ -123,7 +123,7 @@
                 <button type="button" id="btnInstructorGoBack" class="btn btn-base-100 mt-1 mr-54">Go Back</button>
               </form>
 
-            <div id="frmInstructorSecondPage" class="mt-4 hidden">
+            <div id="frmInstructorSecondPage" class="mt-4 hidden card bg-base-100 w-96 shadow-sm">
                 <div class="card bg-base-100 w-96 shadow-sm">
                     <div class="card-body">
                       <h2 class="card-title">Confirm Email</h2>
@@ -420,6 +420,11 @@
 
         $('#btnInstructorGoBack').on('click', function () {
             $('#frmWhoAreYou').fadeIn(); 
+            $('#frmInstructorFirstPage').fadeIn();
+            $('#frmInstructorSecondPage').hide();
+            $('#frmInstructorThirdPage').hide();
+            $('#frmInstructorFourthPage').hide();
+            $('#frmInstructorFifthPage').hide();
             $('#frmInstructorRegister').hide();
         });
       </script>
