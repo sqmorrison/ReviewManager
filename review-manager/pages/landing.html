@@ -127,7 +127,7 @@
 <script type="module" src="/src/main.js"></script>
 <script>
   async function loadMyTeams() {
-    const strEmail = 'jtrujillo42@tntech.edu'; // Replace with the actual email
+    const strEmail = sessionStorage.getItem('strEmail');
 
     let res = await fetch(`http://localhost:8000/teams?email=${strEmail}`, {
         credentials: 'include'
