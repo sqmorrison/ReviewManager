@@ -111,6 +111,7 @@
 
           if(response.ok){
             const result = await response.text();
+            sessionStorage.setItem('strEmail', strEmail);
             window.location.href = '/pages/mfa.html';
           }
         } catch(err){

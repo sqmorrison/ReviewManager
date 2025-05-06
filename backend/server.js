@@ -458,10 +458,11 @@ app.get('/instructorTeams', (req, res, next) => {
     }
 
     const strCommand = `
-        SELECT tblUsers.UserID, tblGroupMembers.UserID, tblCourseGroups.GroupID, tblCourseGroups.GroupName
+        SELECT tblUsers.UserID, tblGroupMembers.UserID, tblCourseGroups.GroupID, tblCourseGroups.GroupName, tblCourses.JoinCode
         FROM tblUsers
         JOIN tblGroupMembers ON tblUsers.UserID = tblGroupMembers.UserID
         JOIN tblCourseGroups ON tblGroupMembers.GroupID = tblCourseGroups.GroupID
+        JOIN tblCourses ON tblCourseGroups.CourseID = tblCourses.CourseID
         WHERE tblUsers.Email = ?
     `;
 
