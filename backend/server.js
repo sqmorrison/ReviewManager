@@ -103,6 +103,10 @@ app.post('/instructorRegister', (req, res, next) => {
         res.status(401).json({ message: "Passwords Must Match" })
     }
 
+    if (!strInFullName.includes(' ')) {
+        return res.status(400).json({ message: "Full name must include both first and last name separated by a space" });
+    }
+
     //hash the password before it can be stored on the database
     const strHashedPassword = bcrypt.hashSync(strInPass, 10);
 
