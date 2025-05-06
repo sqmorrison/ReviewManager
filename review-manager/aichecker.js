@@ -9,7 +9,6 @@ const openai = new OpenAIApi(configuration);
 // Function to moderate and alter comments
 async function moderateComment(comment) {
     try {
-        
         const moderationResponse = await openai.createModeration({
             input: comment,
         });
@@ -35,5 +34,10 @@ async function moderateComment(comment) {
         console.error("Error moderating comment:", error);
         return "An error occurred while processing the comment.";
     }
+}
+
+// Export the function for use in the HTML file
+if (typeof module !== "undefined") {
+    module.exports = { moderateComment };
 }
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review</title>
+</head>
+<body>
+    <h1>Team Review</h1>
+    <form id="reviewForm">
+        <!-- Team Selection -->
+        <div class="form-group">
+            <label for="teamSelect">Select Your Team:</label>
+            <select id="teamSelect" name="team">
+                <option value="" disabled selected>Select a team</option>
+            </select>
+        </div>
+
+        <!-- Team Member Selection -->
+        <div class="form-group">
+            <label for="memberSelect">Select a Team Member:</label>
+            <select id="memberSelect" name="member" disabled>
+                <option value="" disabled selected>Select a member</option>
+            </select>
+        </div>
+
+        <!-- Effort Rating -->
+        <div class="form-group">
+            <label for="effortRating">Rate Their Effort (1-10):</label>
+            <div id="effortRating">
+                <!-- Radio buttons for rating -->
+                <label><input type="radio" name="effortRating" value="1"> 1</label>
+                <label><input type="radio" name="effortRating" value="2"> 2</label>
+                <label><input type="radio" name="effortRating" value="3"> 3</label>
+                <label><input type="radio" name="effortRating" value="4"> 4</label>
+                <label><input type="radio" name="effortRating" value="5"> 5</label>
+                <label><input type="radio" name="effortRating" value="6"> 6</label>
+                <label><input type="radio" name="effortRating" value="7"> 7</label>
+                <label><input type="radio" name="effortRating" value="8"> 8</label>
+                <label><input type="radio" name="effortRating" value="9"> 9</label>
+                <label><input type="radio" name="effortRating" value="10"> 10</label>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+            <label for="notes">Notes:</label>
+            <textarea id="notes" name="notes" rows="4" placeholder="Add any additional comments here..."></textarea>
+        </div>
+
+        <button type="submit">Submit Review</button>
+    </form>
+
+    <!-- Include aichecker.js -->
+    <script src="path/to/aichecker.js"></script>
+    <script>
+        const notesInput = document.getElementById("notes");
+
+        // Process notes using aichecker.js
+        notesInput.addEventListener("blur", async function () {
+            const notesValue = notesInput.value;
+
+            // Call the moderateComment function from aichecker.js
+            if (typeof moderateComment === "function") {
+                const processedNotes = await moderateComment(notesValue);
+                notesInput.value = processedNotes; // Update the textarea with the processed notes
+                console.log("Processed Notes:", processedNotes);
+            } else {
+                console.error("moderateComment function not found in aichecker.js");
+            }
+        });
+    </script>
+</body>
+</html>
