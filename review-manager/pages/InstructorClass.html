@@ -87,7 +87,7 @@
 
   <!--Tab 1 is for public feed back-->
   <input type="radio" name="my_tabs_6" class="tab" aria-label="Public Feedback" checked="checked" />
-  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="private-feedback">
+  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="public-feedback">
     <div class="card w-96 bg-base-100 shadow-xl mb-4">
       <div class="card-body">
         <div class="flex flex-row items-center justify-self-center">
@@ -125,44 +125,35 @@
   
 
   <!--Tab 2 is for private feed back-->
-  <input type="radio" name="my_tabs_6" class="tab " aria-label="Private Feedback"/>
-  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="private-feedback">
-    <div class="card w-96 bg-base-100 shadow-xl mb-4">
-      <div class="card-body">
-        <div class="flex flex-row items-center justify-self-center">
-          <div class="chat-image avatar">
-            <div class="w-10 rounded-full">
-              <img
-                alt="Tailwind CSS chat bubble component"
-                src="/assets/quinn.jpg" />
-            </div>
-          </div>
-        </div>
-        <h2 class="card-title">Feedback Title</h2>
-        <p>Message</p>
-      </div>
-    </div> 
+  <input type="radio" name="my_tabs_6" class="tab " aria-label="Course Teams"/>
+  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="courseTeams">
+    <div class="flex card-actions justify-center">
+      <a id="createTeamButton" type="button" class="btn btn-primary w-auto text-center py-2" href="/pages/team.html">Create a Team</a>
+    </div>
+    
 
-    <div class="card w-96 bg-base-100 shadow-xl mb-4">
-      <div class="card-body">
-        <div class="flex flex-row items-center justify-self-center">
-          <div class="chat-image avatar">
-            <div class="w-10 rounded-full">
-              <img
-                alt="Tailwind CSS chat bubble component"
-                src="/assets/julian.jpg" />
-            </div>
+    <div class="container mx-auto px-4">
+      <h3 class="text-2xl font-bold text-white mt-3 mb-2">Course Teams:</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 justify-evenly" id="sectionInstructorTeams">
+          <!--this is just a template fot what the cards will look like but for the final version this will be dynamically made for each user-->
+          <div class="card bg-base-100 shadow-xl max-w-sm max-h-[400px]">
+          <figure><img src="/logo.png" alt="team Logo" class=" h-[200px]" /></figure>
+          <div class="card-body text-center">
+              <h2 class="card-title justify-center">Team Name</h2>
+              <p>Team Description Goes Here</p>
+              <div class="card-actions justify-center">
+                <a type="button" class="btn btn-primary w-1/2" href="/pages/team.html">View Team</a>
+              </div>
           </div>
-        </div>
-        <h2 class="card-title">Feedback Title</h2>
-        <p>Message</p>  
+          </div>
+
       </div>
     </div>
 
   </div>
 
   <!--Tab 3 is for Team information-->
-  <input type="radio" name="my_tabs_6" class="tab" aria-label="Team Information" />
+  <input type="radio" name="my_tabs_6" class="tab" aria-label="Course Members" />
   <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="enrollmentContainer">
     <div class="card w-96 bg-base-100 shadow-xl mb-4">
       <div class="card-body">
@@ -343,6 +334,15 @@
       console.error("No courseId provided in URL");
       return;
     }
+
+    //will be used to dynamically change the href of the createTeamButton
+    // to the correct courseId
+    const createTeamButton = document.getElementById('createTeamButton');
+      if (courseId) {
+        createTeamButton.href = `/pages/createTeams.html?courseId=${courseId}`;
+      } else {
+        console.error("No courseId found in the URL");
+      }
 
     try {
       const res = await fetch(`${serverAddress}/course-roster?courseId=${courseId}`, {
