@@ -101,24 +101,24 @@
             <form id="frmInstructorFirstPage">
                 <fieldset id="frmInstructorFirstPage" class="fieldset w-xs bg-base-100 border border-base-300 p-4 rounded-box">
                     <label class="fieldset-label">First/Last Name</label>
-                    <input type="text" class="input input-accent" placeholder="John Smith" />
+                    <input type="text" name="strInFullName" class="input input-accent" placeholder="John Smith" />
 
                     <label class="fieldset-label">Prefix</label>
                     <input type="text" class="input input-accent" placeholder="eg Professor, Mrs, Mr, etc" />
 
                     <label class="fieldset-label">Email</label>
-                    <input type="email" class="input input-accent validator" placeholder="Email" />
+                    <input type="email" name="strInEmail" class="input input-accent validator" placeholder="Email" />
                     
                     <label class="fieldset-label">Password</label>
-                    <input type="password" class="input input-accent " placeholder="Password" />
+                    <input type="password" name="strInPass" class="input input-accent " placeholder="Password" />
                 
                     <label class="fieldset-label">Confirm Password</label>
-                    <input type="password" class="input input-accent " placeholder="Confirm Password" />
+                    <input type="password" name="strInConfPass" class="input input-accent " placeholder="Confirm Password" />
                     
                     <label class="fieldset-label">School/University </label>
                     <input type="text" class="input input-accent " placeholder="ex: Tennesee Tech" />
                     
-                    <button type="button" id="btnInstructorRegister" class="btn btn-primary text-white mt-4">Register</button>
+                    <button type="submit" id="btnInstructorRegister" class="btn btn-primary text-white mt-4">Register</button>
                 </fieldset>
                 <button type="button" id="btnInstructorGoBack" class="btn btn-base-100 mt-1 mr-54">Go Back</button>
               </form>
@@ -236,19 +236,61 @@
             intIndex += 1;
         }
         //function for keeping adding input fields based on num classes by an instructor
-        function classGenerator(intInstructorClassNum){
-          let strClosingBracket = ' />';
-          let strOpeningBracket = '<input ';
-          let strClassParams = `class="input input-accent mt-1" `;
-          let strId = `id="inputClassName`;
-          let strPlaceholder = `placeholder="Class `;
-          let strType = `type="text" `
-          let temp = "";
-          for (let i = 0; i < intInstructorClassNum; i++){
-            temp = strOpeningBracket + strClassParams + strType + strId + (i + 1) + `" ` + strPlaceholder + (i + 1) + `" ` + strClosingBracket;
-            $('#inputFields').append(temp);
-          }
+        function classGenerator(intInstructorClassNum) {
+      let temp = "";
+
+      for (let i = 0; i < intInstructorClassNum; i++) {
+          temp += `
+              <div class="class-input-group mt-4">
+                  <input 
+                      type="text" 
+                      class="input input-accent mt-1" 
+                      id="inputCourseName${i + 1}" 
+                      name="strCourseName${i + 1}" 
+                      placeholder="Course Name ${i + 1}" 
+                  />
+                  <input 
+                      type="text" 
+                      class="input input-accent mt-1" 
+                      id="inputCourseNumber${i + 1}" 
+                      name="strCourseNumber${i + 1}" 
+                      placeholder="Course Number ${i + 1}" 
+                  />
+                  <input 
+                      type="text" 
+                      class="input input-accent mt-1" 
+                      id="inputCourseSection${i + 1}" 
+                      name="strCourseSection${i + 1}" 
+                      placeholder="Course Section ${i + 1}" 
+                  />
+                  <input 
+                      type="text" 
+                      class="input input-accent mt-1" 
+                      id="inputCourseTerm${i + 1}" 
+                      name="strCourseTerm${i + 1}" 
+                      placeholder="Course Term ${i + 1}" 
+                  />
+                  <input 
+                      type="date" 
+                      class="input input-accent mt-1" 
+                      id="inputStartDate${i + 1}" 
+                      name="strStartDate${i + 1}" 
+                      placeholder="Start Date ${i + 1}" 
+                  />
+                  <input 
+                      type="date" 
+                      class="input input-accent mt-1" 
+                      id="inputEndDate${i + 1}" 
+                      name="strEndDate${i + 1}" 
+                      placeholder="End Date ${i + 1}" 
+                  />
+              </div>
+          `;
         }
+
+          $('#inputFields').append(temp);
+      }
+
 
         //function for adding progress to progress bar
         function stepUp(intIndex){
@@ -278,15 +320,94 @@
           $('#frmInstructorFourthPage').fadeIn();
         })
 
-        $('#btnInstructorConfirmClassNames').on('click', function () {
+        $('#btnInstructorConfirmClassNames').on('click', async function () {
+            let strEmail = sessionStorage.getItem('strInEmail');
+            let arrCourses = [];
+
+            for (let i = 0; i < intInstructorClassNum; i++) {
+                let strCourseName = $(`#inputCourseName${i + 1}`).val();
+                let strCourseNumber = $(`#inputCourseNumber${i + 1}`).val();
+                let strCourseSection = $(`#inputCourseSection${i + 1}`).val();
+                let strCourseTerm = $(`#inputCourseTerm${i + 1}`).val();
+                let strStartDate = $(`#inputStartDate${i + 1}`).val();
+                let strEndDate = $(`#inputEndDate${i + 1}`).val();
+
+                arrCourses.push({
+                    strCourseName,
+                    strCourseNumber,
+                    strCourseSection,
+                    strCourseTerm,
+                    strStartDate,
+                    strEndDate
+                });
+            };
+
+            try {
+                const response = await fetch('/instructorCourseRegister', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        strEmail,
+                        arrCourses
+                    })
+                });
+
+                const result = await response.text();
+                alert(result); // Show success message or redirect
+            } catch (err) {
+                console.error('Submission failed:', err);
+                alert('Failed to register');
+            }
+
             inc();
             stepUp(intIndex);
         })
 
-        $('#btnInstructorRegister').on('click', function () {
-            inc();
-            stepUp(intIndex);
-        })
+        document.getElementById('frmInstructorRegister').addEventListener('submit', async function (e) {
+            e.preventDefault(); // Prevent the form from navigating away
+
+            const form = e.target;
+            const formData = new FormData(form);
+
+            const data = {
+                strInFullName: formData.get('strInFullName'),
+                strInEmail: formData.get('strInEmail'),
+                strInPass: formData.get('strInPass'),
+                strInConfPass: formData.get('strInConfPass'),
+            };
+
+            if (data.strInPass !== data.strInConfPass) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            if (!data.strInFullName || !data.strInEmail || !data.strInPass || !data.strInConfPass) {
+                alert("Please fill in all fields!");
+                return;
+            }
+            console.log(data); // For debugging
+
+            try {
+                const response = await fetch('/instructorRegister', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.text();
+                alert(result); // Show success message or redirect
+                inc();
+                stepUp(intIndex);
+                sessionStorage.setItem('strInEmail', data.strInEmail);
+            } catch (err) {
+                console.error('Submission failed:', err);
+                alert('Failed to register');
+            }
+        });
 
         $('#btnInstructorConfirmEmail').on('click', function () {
             inc();
