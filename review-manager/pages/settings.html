@@ -157,10 +157,28 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-      const userEmail = "jtrujillo42@tntech.edu"; // Replace dynamically later
+      const userEmail = document.cookie; // Replace dynamically later
     
       async function loadUserProfile() {
-        try {          console.log(userEmail);
+        try {          
+
+          let userEmail = '';
+
+          try {
+            const response = await fetch('/session-info', {
+              credentials: 'include',
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            userEmail = data.email;
+            console.log('Email from session:', userEmail);
+          } catch (err) {
+            console.error('Failed to retrieve session email:', err);
+          }
 
           const backendURL = 'http://localhost:8000';
           const res = await fetch(`${backendURL}/user-profile?email=${encodeURIComponent(userEmail)}`);
@@ -196,7 +214,6 @@
       }
     
       async function updateUserProfile() {
-        console.log("we in the function");
         const backendURL = 'http://localhost:8000';
 
         const payload = {

@@ -26,7 +26,7 @@ app.use(session({
   secret: 'your_secret_key', // Use env variable in production
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true, maxAge: 15 * 60 * 1000 } // Adjust for HTTPS in prod
+  cookie: { secure: false, httpOnly: true, maxAge: 720 * 60 * 1000 } // Adjust for HTTPS in prod
 }));
 
 
@@ -245,14 +245,13 @@ app.post('/mfa', (req, res) => {
   
     db.get("SELECT m.* FROM tblMFA m JOIN tblUsers u ON m.UserID = u.UserID WHERE u.Email = ? AND m.Status = 'active' AND m.Expiration > CURRENT_TIMESTAMP ORDER BY m.Expiration DESC LIMIT 1;", [tempEmail], (err, user) => {
         if (err || !user) return res.status(500).send('Server error');
-        console.log(user)
       if (user.Code !== mfaCode || new Date(user.Expiration) < new Date()) {
         return res.status(401).send('Invalid or expired MFA code');
       }
   
       // MFA successful: finalize login
-      req.session.user = tempEmail; // Establish full session
-        delete req.session.tempUser; // Remove temp session
+        req.session.user = tempEmail; // Establish full session
+        delete req.session.tempUserEmail; // Remove temp session
         
         const useCommand = `
             UPDATE tblMFA
@@ -273,7 +272,15 @@ app.post('/mfa', (req, res) => {
 
 app.get('/logout', (req, res) => {
     req.session.destroy(() => res.redirect('/'));
-})
+});
+
+app.get('/session-info', (req, res) => {
+    if (req.session.user) {
+      res.json({ email: req.session.user});
+    } else {
+      res.status(401).json({ error: 'No session or session expired' });
+    }
+  });
 
 app.get('/teams', (req, res, next) => {
     const strEmail = req.query.email?.trim().toLowerCase();
