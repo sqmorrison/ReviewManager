@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/svg+xml" href="/logo.png" />
-        <title>Home</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+</head>
 <body class="bg-gradient-to-r from-accent via-secondary to-accent min-h-screen">
-  <!--Navbar for application-->
-  <div class="navbar bg-accent shadow-sm">
+    <!-- Navbar for website splash page -->
+    <div class="navbar bg-accent shadow-sm">
         <div class="navbar-start">
           <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -31,14 +30,14 @@
             </figure>
             JQReview</a>
         </div>
-
+  
         <div class="navbar-center lg:flex lg:visible hidden">
           <ul class="menu menu-horizontal px-1">
             <li><a class="text-white text-lg font-sans" href="createClass.html">Create a Class</a></li>
             <li><a class="text-white text-lg font-sans" href="registerClass.html">Register for a Class</a></li>
           </ul>
         </div> 
-
+  
         <!--Ths is the portion of code that will be used to change the theme of the website (light/dark) -->
         <div class="navbar-end">
             <label class="swap swap-rotate text-white">
@@ -63,7 +62,7 @@
                     d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
                 </svg>
               </label>
-
+  
             <!--The User-name will be dynamically changed for every user whe they login -->
             <div class="dropdown">
               <div tabindex="0" role="button" class="btn bg-accent border-transparent shadow-none text-white">
@@ -79,97 +78,102 @@
               </ul>
             </div>
         </div>
-      </div>
+      </div> 
+  
+    <!-- Card where the user will see all the current info -->
+    <div class="flex flex-col items-center justify-center min-h-screen">
+      <div class="bg-base-100 border-base-300 p-6" style="background-color: transparent;" id="user-settings">
+        <div class="card w-96 bg-base-100 shadow-xl mb-4">
+          <div class="card-body">
+            <div class="flex flex-col items-center">
 
+              <h2 id = "teamNameHeader" class="card-title mb-5">Create team for {course name here}</h2>
+              
 
-      
-      <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-white mt-3 mb-2">Instructor:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 justify-evenly" id="sectionInstructorTeams">
-            <!--this is just a template fot what the cards will look like but for the final version this will be dynamically made for each user-->
-            <div class="card bg-base-100 shadow-xl max-w-sm max-h-[400px]">
-            <figure><img src="/logo.png" alt="team Logo" class=" h-[200px]" /></figure>
-            <div class="card-body text-center">
-                <h2 class="card-title justify-center">Team Name</h2>
-                <p>Team Description Goes Here</p>
-                <div class="card-actions justify-center">
-                  <a type="button" class="btn btn-primary w-1/2" href="">View Team</a>
-                </div>
+              <input type="text" id="teamName" class="input input-bordered w-full mb-2" placeholder="Team Name" />
+  
+              <div class="mt-4 space-y-2">
+                <h3>How many members do you want to add?</h3>
+                <input type="number" id="teamMembersAmount" class="input input-bordered w-full mb-2" placeholder="Number of Members" min="1" max="10" />
+
+                <h3>Who do you want to add to this team?</h3>
+
+                <select id="teamMembersSelect" class="select select-bordered w-full mb-2">
+                  <option disabled selected>Select members</option>
+                  <!-- Options will be populated dynamically -->
+
+                <!--Button to confirm team creation-->
+                </select>
+
+              </div>
+  
+              <!-- Update button -->
+              <div class="card-actions justify-center mt-4 w-full">
+                <button type="button" id="btnCreateTeam" class="btn btn-primary w-full">Create Team</button>
+              </div>
+              
             </div>
-            </div>
-
+          </div>
         </div>
       </div>
-
-      <div class="container mx-auto px-4">
-        <h3 class="text-2xl font-bold text-white mt-3 mb-2">Student:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 " id="sectionStudentTeams">
-            <!--this is just a template fot what the cards will look like but for the final version this will be dynamically made for each user-->
-            <div class="card bg-base-100 shadow-xl max-w-sm max-h-[400px]">
-            <figure><img src="/logo.png" alt="team Logo" class=" h-[200px]" /></figure>
-            <div class="card-body text-center">
-                <h2 class="card-title justify-center">Team Name</h2>
-                <p>Team Description Goes Here</p>
-                <div class="card-actions justify-center">
-                  <a type="button" class="btn btn-primary w-1/2" href="">View Team</a>
-                </div>
-            </div>
-            </div>
-
-        </div>
-      </div>
-      
-      
-      
     </div>
+  
+    <script type="module" src="/src/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+         document
+          .querySelector("#btnCreateTeam")
+          .addEventListener("click", () => {
+              Swal.fire({
+                  title: "Create Team?",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#d33",
+                  cancelButtonColor: "#3085d6",
+                  confirmButtonText: "Yes, Create!",
+                  cancelButtonText: "Cancel",
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      
+                  }
+              });
+          });
+
+          async function loadCourseUsers() {
+            const params = new URLSearchParams(window.location.search);
+            const courseId = params.get('courseId');
+            if (!courseId) return;
+
+            try {
+            const res = await fetch(`http://localhost:8000/course-enrolled-users?courseId=${courseId}`);
+            if (!res.ok) throw new Error("Failed to fetch enrolled users");
+
+            const users = await res.json();
+            const select = document.getElementById('teamMembersSelect');
+
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.UserID;
+                option.textContent = user.FullName;
+                select.appendChild(option);
+            });
+            } catch (err) {
+            console.error("Error loading enrolled users:", err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCourseName();
+            loadCourseUsers();
+        });
     
-</body>
-<script type="module" src="/src/main.js"></script>
-<script>
-  async function loadMyTeams() {
-    const strEmail = 'jtrujillo42@tntech.edu'; // Replace with the actual email
+    </script>
 
-    let res = await fetch(`http://localhost:8000/teams?email=${strEmail}`, {
-        credentials: 'include'
-    });
-
-    if (!res.ok) throw new Error('Couldn’t load teams');
-
-    const { instructor, student } = await res.json();
-
-    const instrContainer = document.getElementById('sectionInstructorTeams');
-    const studContainer = document.getElementById('sectionStudentTeams');
-
-    // Helper to make a card element
-    function makeCard({ team_id, name, description }) {
-        const div = document.createElement('div');
-        div.className = 'card bg-base-100 shadow-xl max-w-sm max-h-[400px]';
-        div.innerHTML = `
-            <figure>
-                <img src="/logo.png" alt="team Logo" class="h-[200px]" />
-            </figure>
-            <div class="card-body text-center">
-                <h2 class="card-title justify-center">${name}</h2>
-                <p>${description}</p>
-                <div class="card-actions justify-center">
-                        <a class="btn btn-primary w-1/2" href="/pages/InstructorClass.html?courseId=${team_id}">
-                        View Team
-                    </a>
-                </div>
-            </div>
-        `;
-        return div;
-    }
-
-    // Clear & render
-    instrContainer.innerHTML = '';
-    studContainer.innerHTML = '';
-
-    instructor.forEach(t => instrContainer.appendChild(makeCard(t)));
-    student.forEach(t => studContainer.appendChild(makeCard(t)));
-}
-
-loadMyTeams().catch(console.error);
-</script>
+    
+    
+    
+    
+      
+  </body>
 
 </html>

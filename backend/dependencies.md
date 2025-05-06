@@ -8,3 +8,4 @@ here is a list of what is installed currently in the backend modules:
     express-session
     nodemailer
     bcrypt
+    cookie-parser

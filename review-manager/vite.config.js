@@ -10,6 +10,7 @@ export default defineConfig({
       '/mfa': 'http://localhost:8000/',
       '/instructorRegister': 'http://localhost:8000',
       '/instructorCourseRegister': 'http://localhost:8000'
+
     }
   },
   build: {
