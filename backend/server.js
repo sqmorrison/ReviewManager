@@ -26,7 +26,7 @@ app.use(session({
   secret: 'your_secret_key', // Use env variable in production
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true, maxAge: 600000 } // Adjust for HTTPS in prod
+  cookie: { secure: false, httpOnly: true, maxAge: 15 * 60 * 1000 } // Adjust for HTTPS in prod
 }));
 
 
@@ -137,8 +137,9 @@ app.post('/login', (req, res, next) => {
       }, (err) => {
         if (err) return res.status(500).send('Failed to send MFA email');
 
-        // Save UserID temporarily in session
-          req.session.tempUserID = user.UserID;
+          // Save UserID temporarily in session
+          req.session.tempUserEmail = user.Email;
+          console.log("Session on /login:", req.session);
           res.status(200).json({ success: true });
 
       });
@@ -148,13 +149,20 @@ app.post('/login', (req, res, next) => {
   
 app.post('/mfa', (req, res) => {
     const { mfaCode } = req.body;
-    const tempEmail = req.session.tempUser;
+    const tempEmail = req.session.tempUserEmail;
+
+    console.log("Session on /mfa:", req.session);
+
+    console.log(mfaCode);
+    console.log(tempEmail);
   
     if (!tempEmail) return res.status(401).send('Session expired. Please log in again.');
   
+    console.log("temp email exists")
     db.get("SELECT m.* FROM tblMFA m JOIN tblUsers u ON m.UserID = u.UserID WHERE u.Email = ? AND m.Status = 'active' AND m.Expiration > CURRENT_TIMESTAMP ORDER BY m.Expiration DESC LIMIT 1;", [tempEmail], (err, user) => {
-      if (err || !user) return res.status(500).send('Server error');
-      if (user.mfaCode !== mfaCode || Date.now() > user.mfaExpires) {
+        if (err || !user) return res.status(500).send('Server error');
+        console.log(user)
+      if (user.Code !== mfaCode || new Date(user.Expiration) < new Date()) {
         return res.status(401).send('Invalid or expired MFA code');
       }
   
@@ -175,7 +183,7 @@ app.post('/mfa', (req, res) => {
             )
             `;
       db.run(useCommand, [tempEmail]);
-      res.redirect('/landing.html');
+      res.status(200).json({ success: true });
     });
 });
 

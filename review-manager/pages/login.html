@@ -100,8 +100,6 @@
           strPassword: formData.get('strPassword')
         };
 
-        console.log('Submitting:', data);
-
         try{
           const response = await fetch('/login', {
             method: 'POST',
