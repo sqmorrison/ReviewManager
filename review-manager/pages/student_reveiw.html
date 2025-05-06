@@ -51,45 +51,23 @@
         <button type="submit">Submit Review</button>
     </form>
 
+    <!-- Include aichecker.js -->
+    <script src="path/to/aichecker.js"></script>
     <script>
-        const teamSelect = document.getElementById("teamSelect");
-        const memberSelect = document.getElementById("memberSelect");
+        const notesInput = document.getElementById("notes");
 
-        // Fetch teams and populate the team dropdown
-        fetch('http://localhost:8000/teams') // Adjust the endpoint if necessary
-            .then(response => response.json())
-            .then(data => {
-                // Assuming `data` is an object where keys are team names and values are arrays of members
-                for (const team in data) {
-                    const option = document.createElement("option");
-                    option.value = team;
-                    option.textContent = team.charAt(0).toUpperCase() + team.slice(1);
-                    teamSelect.appendChild(option);
-                }
-            })
-            .catch(error => console.error('Error fetching team data:', error));
+        // Process notes using aichecker.js
+        notesInput.addEventListener("blur", async function () {
+            const notesValue = notesInput.value;
 
-        // Populate team members dropdown based on selected team
-        teamSelect.addEventListener("change", function () {
-            const selectedTeam = teamSelect.value;
-            memberSelect.innerHTML = '<option value="" disabled selected>Select a member</option>'; // Reset options
-
-            fetch('http://localhost:8000/teams') // Adjust the endpoint if necessary
-                .then(response => response.json())
-                .then(data => {
-                    if (data[selectedTeam]) {
-                        data[selectedTeam].forEach(member => {
-                            const option = document.createElement("option");
-                            option.value = member;
-                            option.textContent = member;
-                            memberSelect.appendChild(option);
-                        });
-                        memberSelect.disabled = false;
-                    } else {
-                        memberSelect.disabled = true;
-                    }
-                })
-                .catch(error => console.error('Error fetching team members:', error));
+            // Call the moderateComment function from aichecker.js
+            if (typeof moderateComment === "function") {
+                const processedNotes = await moderateComment(notesValue);
+                notesInput.value = processedNotes; // Update the textarea with the processed notes
+                console.log("Processed Notes:", processedNotes);
+            } else {
+                console.error("moderateComment function not found in aichecker.js");
+            }
         });
     </script>
 </body>
