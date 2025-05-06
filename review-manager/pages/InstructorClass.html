@@ -163,7 +163,7 @@
 
   <!--Tab 3 is for Team information-->
   <input type="radio" name="my_tabs_6" class="tab" aria-label="Team Information" />
-  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="private-feedback">
+  <div class="tab-content bg-base-100 order-base-300 p-6 justify-items-center" style="background-color: transparent;" id="enrollmentContainer">
     <div class="card w-96 bg-base-100 shadow-xl mb-4">
       <div class="card-body">
         <div class="flex flex-row items-center justify-self-center">
@@ -331,6 +331,94 @@
 
 </body>
 <script type="module" src="/src/main.js"></script>
+<script>
+  console.log("Loading team data...");
+  async function loadTeamData() {
+    const serverAddress = 'http://localhost:8000'; // Replace with your server address
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get('courseId'); // should return "2"
+    console.log("Loaded courseId:", courseId); // <-- make sure this logs "2"
+
+    if (!courseId) {
+      console.error("No courseId provided in URL");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${serverAddress}/course-roster?courseId=${courseId}`, {
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error("Failed to fetch course roster");
+
+      const data = await res.json();
+      console.log("Enrolled users:", data);
+
+      const container = document.getElementById('enrollmentContainer');
+      container.innerHTML = '';
+      data.forEach((member, i) => {
+        container.appendChild(makeUserCard(member, i));
+      });
+    } catch (err) {
+      console.error("Error loading users:", err);
+    }
+  }
+
+  function makeUserCard(user, index) {
+    const {
+      FullName,
+      Role,
+      Email,
+      strDiscord,
+      strTeams,
+      strPhone,
+      strProfilePhoto
+    } = user;
+
+    const div = document.createElement('div');
+    div.className = 'card w-80 bg-base-100 shadow-xl';
+
+    div.innerHTML = `
+      <div class="card-body">
+        <div class="flex flex-row items-center justify-self-center">
+          <div class="chat-image avatar">
+            <div class="w-10 rounded-full">
+              <img src="${strProfilePhoto || '/assets/default.jpg'}" />
+            </div>
+          </div>
+        </div>
+        <h2 class="card-title">${FullName}</h2>
+        <p>${Role}</p>
+
+        <button class="btn mt-2" onclick="document.getElementById('modal_${index}').showModal()">View</button>
+
+        <dialog id="modal_${index}" class="modal">
+          <div class="modal-box justify-items-center">
+            <div class="chat-image avatar">
+              <div class="w-30 rounded-full">
+                <img src="${strProfilePhoto || '/assets/default.jpg'}" />
+              </div>
+            </div>
+            <h3 class="card-title">${FullName}</h3>
+            <p >${Role}</p>
+            <div class="flex flex-col items-start text-sm">
+              <p><img src="/assets/discord-icon.svg" class="inline w-4 mr-2" /> ${strDiscord || 'N/A'}</p>
+              <p><img src="/assets/msTeams.png" class="inline w-4 mr-2" /> ${strTeams || 'N/A'}</p>
+              <p><img src="/assets/email.svg" class="inline w-4 mr-2" /> ${Email}</p>
+              <p><img src="/assets/phone.png" class="inline w-4 mr-2" /> ${strPhone || 'N/A'}</p>
+            </div>
+            <div class="modal-action">
+              <form method="dialog"><button class="btn">Close</button></form>
+            </div>
+          </div>
+        </dialog>
+      </div>
+    `;
+    return div;
+  }
+
+  window.addEventListener('DOMContentLoaded', loadTeamData);
+</script>
+
 
 
 
