@@ -77,19 +77,19 @@
                 alt="JQReview Logo"
                 />
             </figure>
-            <div class="card bg-neutral text-white w-96">
-                <div class="card-body items-center justify-center text-center">
+            <form id="frmLogin" class="card bg-neutral text-white w-96">
+                <fieldset class="card-body items-center justify-center text-center">
                     <h2 class="card-title">Login</h2>
                     <input type="text" name="strEmail" placeholder="Email" class="input input-accent text-black font-bold mt-0 w-full" />
-                    <input type="text" name="strPassword" placeholder="Password" class="input input-accent text-black font-bold mt-1 mb-3 w-full" />
-                    <button id="btnLogin" type="submit" class="btn btn-primary w-full">Login</button>
-                </div>
-            </div>
+                    <input type="password" name="strPassword" placeholder="Password" class="input input-accent text-black font-bold mt-1 mb-3 w-full" />
+                    <button type="submit" class="btn btn-primary w-full">Login</button>
+                </fieldset>
+              </form>
             <a href="register.html" class="text-white text-xl">Need to Register? Register <u>here</u></a>
     </div>
     <script type="module" src="/src/main.js"></script>
     <script>
-      document.getElementById('btnLogin').addEventListener('submit', async function(e) {
+      document.getElementById('frmLogin').addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const form = e.target;
@@ -111,7 +111,7 @@
 
           if(response.ok){
             const result = await response.text();
-            window.location.href = '/mfa';
+            window.location.href = '/pages/mfa.html';
           }
         } catch(err){
           console.error(err);
