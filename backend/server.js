@@ -41,16 +41,6 @@ const transporter = nodemailer.createTransport({
     
 });
 
-/* 
-UserID INTEGER PRIMARY KEY AUTOINCREMENT,
-    FirstName TEXT NOT NULL,
-    LastName TEXT NOT NULL,
-    Email TEXT UNIQUE NOT NULL,
-    Password TEXT NOT NULL,
-    CreationDateTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    LastLoginDateTime DATETIME
-*/
-
 app.post('/studentRegister', (req, res, next) => {
     const { strFullName, strEmail, strPassword, strConfirmPass, strClassCode } = req.body;
 
@@ -115,8 +105,6 @@ app.post('/login', (req, res, next) => {
       return res.status(401).send('Invalid credentials');
     }
       
-    console.log("successful login")
-
     // Generate MFA code and expiration
     const mfaCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 mins from now
@@ -128,7 +116,6 @@ app.post('/login', (req, res, next) => {
 
     db.run(insertMFA, [user.UserID, mfaCode, expiresAt], function (err) {
       if (err) return res.status(500).send('Failed to save MFA code');
-        console.log("sending mfa email")
       transporter.sendMail({
         from: 'no-reply@jqreview.com',
         to: strEmail,
@@ -139,9 +126,7 @@ app.post('/login', (req, res, next) => {
 
           // Save UserID temporarily in session
           req.session.tempUserEmail = user.Email;
-          console.log("Session on /login:", req.session);
           res.status(200).json({ success: true });
-
       });
     });
   });
@@ -150,15 +135,9 @@ app.post('/login', (req, res, next) => {
 app.post('/mfa', (req, res) => {
     const { mfaCode } = req.body;
     const tempEmail = req.session.tempUserEmail;
-
-    console.log("Session on /mfa:", req.session);
-
-    console.log(mfaCode);
-    console.log(tempEmail);
   
     if (!tempEmail) return res.status(401).send('Session expired. Please log in again.');
   
-    console.log("temp email exists")
     db.get("SELECT m.* FROM tblMFA m JOIN tblUsers u ON m.UserID = u.UserID WHERE u.Email = ? AND m.Status = 'active' AND m.Expiration > CURRENT_TIMESTAMP ORDER BY m.Expiration DESC LIMIT 1;", [tempEmail], (err, user) => {
         if (err || !user) return res.status(500).send('Server error');
         console.log(user)
